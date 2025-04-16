@@ -13,6 +13,10 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+      - name: Debug - Show current directory and structure
+        run: |
+          echo "Current directory: $(pwd)"
+          ls -R .
       - name: Login to docker hub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }} 
       - name: Build docker image
