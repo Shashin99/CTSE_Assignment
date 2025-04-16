@@ -1,6 +1,3 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
 name: CICD Workflow
 
 on:
@@ -9,29 +6,43 @@ on:
 
 jobs:
   build:
-    runs-on: [ubuntu-latest]
+    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
-      - name: Debug - Show current directory and structure
+
+      - name: Debug - Show directory structure
         run: |
           echo "Current directory: $(pwd)"
-          ls -R .
-      - name: Login to docker hub
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }} 
-      - name: Build docker image
+          ls -la
+          ls -la ./userservice
+
+      - name: Login to Docker Hub
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker image
         run: docker build -t shashin99/ctse-assignment .
         working-directory: ./userservice
-      - name: Publish image to docker hub
+
+      - name: Push Docker image to Docker Hub
         run: docker push shashin99/ctse-assignment:latest
-        
+
   deploy:
     needs: build
-    runs-on: [aws-ec2]
+    runs-on: self-hosted  # Use this label if you're using your EC2 as a self-hosted runner
+
     steps:
-      - name: Pull image from docker hub
+      - name: Pull Docker image from Docker Hub
         run: docker pull shashin99/ctse-assignment:latest
-      - name: Delete old container
-        run: docker rm -f ctse-assignment-container
-      - name: Run docker container
-        run: docker run -d -p 5001:5001 --name ctse-assignment-container shashin99/ctse-assignment
+
+      - name: Stop and remove existing container (if exists)
+        run: |
+          if [ "$(docker ps -aq -f name=ctse-assignment-container)" ]; then
+            docker rm -f ctse-assignment-container
+          else
+            echo "No existing container to remove"
+          fi
+
+      - name: Run new Docker container
+        run: docker run -d -p 5001:5001 --name ctse-assignment-container shashin99/ctse-assignment:latest
