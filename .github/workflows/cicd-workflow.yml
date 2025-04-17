@@ -2,7 +2,7 @@ name: CICD Workflow
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
@@ -39,24 +39,24 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-north-1
 
-      - name: Render updated ECS Task Definition
+      - name: Render new task definition with updated Docker image
         id: render-task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: ctse-app-task-definition.json
           container-name: ctsejs-app
-          image: shashin99/ctsejs-app:latest
+          image: shashin99/ctse-assignment:latest
 
-      - name: Deploy to Amazon ECS
+      - name: Deploy to Amazon ECS service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           cluster: devCluster
-          service: userservice-app-service
+          service: userservice-app-serivce
           task-definition: ${{ steps.render-task-def.outputs.task-definition }}
           wait-for-service-stability: true
