@@ -20,7 +20,7 @@ jobs:
           ls -la ./userservice
 
       - name: Login to Docker Hub
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: Build Docker Image
         run: docker build -t shashin99/ctse-assignment:latest .
@@ -45,10 +45,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-north-1
 
-      - name: Update ECS Service
+      - name: Deploy to Amazon ECS service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          service: userservice-app-serivce
           cluster: devCluster
-          task-definition: arn:aws:ecs:eu-north-1:412381758494:service-deployment/devCluster/userservice-app-service/1m_O_zMd6QkmzYF6ILl9-
-
+          service: userservice-app-serivce
+          task-definition: arn:aws:ecs:eu-north-1:412381758494:task-definition/ctse-app-task-definition:1
