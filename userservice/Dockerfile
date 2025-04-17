@@ -11,6 +11,7 @@ RUN npm install
 
 # Copy the rest of the application code to the working directory
 COPY . .
+RUN echo "mongodb+srv://CTSE:CTSE@ctse.kewjrct.mongodb.net/ctse?retryWrites=true&w=majority&appName=CTSE" > .env
 
 # Environment variables (override with docker run -e)
 ENV PORT=5001
