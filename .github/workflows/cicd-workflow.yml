@@ -50,5 +50,5 @@ jobs:
         with:
           service: userservice-app-serivce
           cluster: devCluster
-          task-definition: arn:aws:ecs:eu-north-1:412381758494:task-definition/ctse-app-task-definition:1
+          task-definition: arn:aws:ecs:eu-north-1:412381758494:service-deployment/devCluster/userservice-app-service/1m_O_zMd6QkmzYF6ILl9-
 
