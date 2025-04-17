@@ -48,5 +48,5 @@ jobs:
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: userservice-app-service
-          cluster: DevCluster
+          cluster: devCluster
           wait-for-service-stability: true
