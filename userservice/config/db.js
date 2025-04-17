@@ -6,11 +6,14 @@ dotenv.config();
 const connectDB = async () => {
     try {
         console.log(process.env.MONGO_URI);
-        const conn = await mongoose.connect(process.env.MONGO_URI, {
-            dbName: "CTSE",
-            retryWrites: true,
-            w: "majority",
-        });
+        const conn = await mongoose.connect(
+            "mongodb+srv://CTSE:CTSE@ctse.kewjrct.mongodb.net/ctse?retryWrites=true&w=majority&appName=CTSE",
+            {
+                dbName: "CTSE",
+                retryWrites: true,
+                w: "majority",
+            }
+        );
         console.log("MongoDB Connected Successfully!");
         console.log(`MongoDB Database: ${conn.connection.db.databaseName}`);
         return conn;
