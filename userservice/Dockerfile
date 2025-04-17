@@ -14,7 +14,7 @@ COPY . .
 
 # Environment variables (override with docker run -e)
 ENV PORT=5001
-ENV MONGO_URI= mongodb+srv://CTSE:CTSE@ctse.kewjrct.mongodb.net/ctse?retryWrites=true&w=majority&appName=CTSE
+# ENV MONGO_URI= mongodb+srv://CTSE:CTSE@ctse.kewjrct.mongodb.net/ctse?retryWrites=true&w=majority&appName=CTSE
 
 # Expose port 5001 for the application
 EXPOSE 5001
