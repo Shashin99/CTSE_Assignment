@@ -2,51 +2,53 @@ name: CICD Workflow
 
 on:
   push:
-    branches: [main]
+    branches: [ "main" ]
 
 jobs:
-  build-and-deploy:
-    runs-on: [ubuntu-latest]
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: 'eu-north-1'
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-        with:
-          mask-password: 'true'
-          
-      - name: Build, tag, and push image to Amazon ECR
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: latest
-          REPOSITORY: nodejs-app
-        run: |
-          # Build a docker container and
-          # push it to ECR so that it can
-          # be deployed to ECS.
-          docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT    
+  build:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
 
-      - name: Fill in the new image ID in the Amazon ECS task definition
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Debug - Show directory structure
+        run: |
+          echo "Current directory: $(pwd)"
+          ls -la
+          ls -la ./userservice
+
+      - name: Login to Docker Hub
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker Image
+        run: docker build -t shashin99/ctse-assignment:latest .
+        working-directory: ./userservice
+
+      - name: Push Docker Image to Docker Hub
+        run: docker push shashin99/ctse-assignment:latest
+
+  deploy:
+    name: Deploy to Amazon ECS
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          task-definition: nodejs-app-task-definition.json 
-          container-name: nodejs-app
-          image: ${{ steps.build-image.outputs.image }}    
-      - name: Deploy Amazon ECS task definition
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-north-1
+
+      - name: Update ECS Service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: nodejs-app-service
-          cluster: DevCluster
-          wait-for-service-stability: true    
+          service: userservice-app-serivce
+          cluster: devCluster
+          task-definition: arn:aws:ecs:eu-north-1:412381758494:service-deployment/devCluster/userservice-app-service/1m_O_zMd6QkmzYF6ILl9-
+
