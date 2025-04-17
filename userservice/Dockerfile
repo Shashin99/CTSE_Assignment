@@ -16,7 +16,7 @@ COPY . .
 ENV PORT=5001
 ENV MONGO_URI= mongodb+srv://CTSE:CTSE@ctse.kewjrct.mongodb.net/ctse?retryWrites=true&w=majority&appName=CTSE
 
-# Expose port 5000 for the application
+# Expose port 5001 for the application
 EXPOSE 5001
 
 # Start the application

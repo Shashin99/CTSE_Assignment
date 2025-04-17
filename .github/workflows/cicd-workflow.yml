@@ -1,4 +1,4 @@
-name: CICD Workflow
+name: CICD Workflow 
 
 on:
   push:
@@ -21,19 +21,20 @@ jobs:
       - name: Login to Docker Hub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build Docker image
+      - name: Build Docker Image
         run: docker build -t shashin99/ctse-assignment .
         working-directory: ./userservice
 
-      - name: Push Docker image to Docker Hub
+      - name: Push Docker Image to Docker Hub
         run: docker push shashin99/ctse-assignment:latest
 
   deploy:
+
     needs: build
     runs-on: self-hosted
 
     steps:
-      - name: Pull Docker image from Docker Hub
+      - name: Pull Docker Image from Docker Hub
         run: docker pull shashin99/ctse-assignment:latest
 
       - name: Stop and remove existing container (if exists)
