@@ -49,7 +49,7 @@ jobs:
         id: render-task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: ctse-app-task-definition.json
+          task-definition: ctse-app-task-definition-revision1.json
           container-name: ctsejs-app
           image: shashin99/ctsejs-app:latest
 
