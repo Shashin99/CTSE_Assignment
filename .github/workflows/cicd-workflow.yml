@@ -57,6 +57,6 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           cluster: devCluster
-          service: userservice-app-serivce
+          service: userservice-app-service
           task-definition: ${{ steps.render-task-def.outputs.task-definition }}
           wait-for-service-stability: true
