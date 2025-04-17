@@ -1,4 +1,4 @@
-name: CICD Workflow 
+name: CICD Workflow
 
 on:
   push:
@@ -6,10 +6,11 @@ on:
 
 jobs:
   build:
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source
+      - name: Checkout source code
         uses: actions/checkout@v4
 
       - name: Debug - Show directory structure
@@ -22,28 +23,39 @@ jobs:
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker Image
-        run: docker build -t shashin99/ctse-assignment .
+        run: docker build -t shashin99/ctse-assignment:latest .
         working-directory: ./userservice
 
       - name: Push Docker Image to Docker Hub
         run: docker push shashin99/ctse-assignment:latest
 
   deploy:
-
+    name: Deploy to Amazon ECS
     needs: build
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Pull Docker Image from Docker Hub
-        run: docker pull shashin99/ctse-assignment:latest
+      - name: Checkout source code
+        uses: actions/checkout@v4
 
-      - name: Stop and remove existing container (if exists)
-        run: |
-          if [ "$(docker ps -aq -f name=ctse-assignment-container)" ]; then
-            docker rm -f ctse-assignment-container
-          else
-            echo "No existing container to remove"
-          fi
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Run new Docker container
-        run: docker run -d -p 5001:5001 --name ctse-assignment-container shashin99/ctse-assignment:latest
+      - name: Render Amazon ECS task definition
+        id: render-task
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ecs-task-def.json
+          container-name: ctse-assignment-container
+          image: shashin99/ctse-assignment:latest
+
+      - name: Deploy to Amazon ECS service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          service: userservice-app-serivce            
+          cluster: devCluster            
+          task-definition: ${{ steps.render-task.outputs.task-definition }}
