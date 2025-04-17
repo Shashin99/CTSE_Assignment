@@ -43,19 +43,11 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: eu-north-1
 
-      - name: Render Amazon ECS task definition
-        id: render-task
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: ecs-task-def.json
-          container-name: ctse-assignment-container
-          image: shashin99/ctse-assignment:latest
-
-      - name: Deploy to Amazon ECS service
+      - name: Update ECS Service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          service: userservice-app-serivce            
-          cluster: devCluster            
-          task-definition: ${{ steps.render-task.outputs.task-definition }}
+          service: userservice-app-serivce
+          cluster: devCluster
+          task-definition: ctse-app-task-definition
