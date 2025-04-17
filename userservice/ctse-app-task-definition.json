@@ -75,13 +75,8 @@
         }
     ],
     "placementConstraints": [],
-    "compatibilities": [
-        "EC2",
-        "FARGATE"
-    ],
-    "requiresCompatibilities": [
-        "FARGATE"
-    ],
+    "compatibilities": ["EC2", "FARGATE"],
+    "requiresCompatibilities": ["FARGATE"],
     "cpu": "1024",
     "memory": "3072",
     "runtimePlatform": {
@@ -90,6 +85,5 @@
     },
     "registeredAt": "2025-04-17T11:20:18.965Z",
     "registeredBy": "arn:aws:iam::412381758494:user/Shashin",
-    "enableFaultInjection": false,
     "tags": []
 }
