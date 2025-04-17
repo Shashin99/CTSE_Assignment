@@ -10,11 +10,11 @@ dotenv.config();
 const app = express();
 
 // CORS Configuration
-// app.use(
-//     cors({
-//         origin: "http://localhost:3000", // Your React app's URL
-//     })
-// );
+app.use(
+    cors({
+        origin: "*",
+    })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
