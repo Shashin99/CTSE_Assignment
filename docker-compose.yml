@@ -1,0 +1,41 @@
+version: "3"
+
+services:
+    mongo:
+        image: mongo:latest
+        volumes:
+            - mongo_data:/data/db
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: CTSE
+            MONGO_INITDB_ROOT_PASSWORD: CTSE
+
+    auth-service:
+        build: ./auth-service
+        ports:
+            - "5001:5001"
+        environment:
+            MONGO_URI: "mongodb+srv://CTSE:CTSE@ctse.kewjrct.mongodb.net/ctse?retryWrites=true&w=majority&appName=CTSE"
+            JWT_SECRET: "shashin99"
+        depends_on:
+            - mongo
+
+    user-service:
+        build: ./user-service
+        ports:
+            - "5002:5002"
+        environment:
+            MONGO_URI: "mongodb+srv://CTSE:CTSE@ctse.kewjrct.mongodb.net/ctse?retryWrites=true&w=majority&appName=CTSE"
+            JWT_SECRET: "shashin99"
+        depends_on:
+            - mongo
+
+    api-gateway:
+        build: ./api-gateway
+        ports:
+            - "5000:5000"
+        depends_on:
+            - auth-service
+            - user-service
+
+volumes:
+    mongo_data:
