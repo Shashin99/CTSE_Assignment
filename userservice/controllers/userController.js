@@ -2,10 +2,12 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import User from "../models/User.js";
 
-
-
 // Get single user by ID
 export const getUserById = async (req, res) => {
+    if (req.params.id !== req.userId) { 
+        return res.status(403).json({ message: "Unauthorized" });
+    }
+
     try {
         const user = await User.findById(req.params.id).select("-__v");
 
@@ -157,5 +159,3 @@ export const deleteUser = async (req, res) => {
         });
     }
 };
-
-
