@@ -25,10 +25,14 @@ const UserProfile = () => {
         const fetchUser = async () => {
             try {
                 const token = localStorage.getItem("authToken");
+                const userData = JSON.parse(localStorage.getItem("userData"));
+                console.log(userData);
+                
                 const response = await axios.get(
-                    `http://localhost:5002/api/users/${id}`,
+                    `http://localhost:5002/api/users/${userData.id}`,
                     { headers: { Authorization: `Bearer ${token}` } }
-                );
+                )
+                
                 setUser(response.data);
                 setLoading(false);
             } catch (error) {
@@ -104,6 +108,8 @@ const UserProfile = () => {
             </Container>
         );
     }
+
+    console.log("User state before render:", user.user);
     return (
         <Container className="py-5">
             <Card className="shadow-lg mx-auto" style={{ maxWidth: "800px" }}>
@@ -117,7 +123,7 @@ const UserProfile = () => {
                 <Card.Body className="p-4">
                     <div className="text-center mb-4">
                         <FiUser size={80} style={{ color: colors.primary }} />
-                        <h2 className="mt-3">{user?.name || "N/A"}</h2>
+                        <h2 className="mt-3">{user?.user.name || "N/A"}</h2>
                     </div>
 
                     <div className="row g-4 mb-4">
@@ -127,11 +133,11 @@ const UserProfile = () => {
                                     Personal Details
                                 </h5>
                                 <p>
-                                    <strong>NIC:</strong> {user?.nic || "N/A"}
+                                    <strong>NIC:</strong> {user?.user.nic || "N/A"}
                                 </p>
                                 <p>
                                     <strong>Contact:</strong>{" "}
-                                    {user?.contactNumber || "N/A"}
+                                    {user?.user.contactNumber || "N/A"}
                                 </p>
                             </div>
                         </div>
@@ -143,13 +149,13 @@ const UserProfile = () => {
                                 </h5>
                                 <p>
                                     <strong>Email:</strong>{" "}
-                                    {user?.email || "N/A"}
+                                    {user?.user.email || "N/A"}
                                 </p>
                                 <p>
                                     <strong>Member Since:</strong>{" "}
-                                    {user?.createdAt
+                                    {user?.user.createdAt
                                         ? new Date(
-                                              user.createdAt
+                                              user.user.createdAt
                                           ).toLocaleDateString("en-US", {
                                               year: "numeric",
                                               month: "long",

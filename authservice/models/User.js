@@ -51,6 +51,8 @@ const userSchema = new mongoose.Schema({
     updatedAt: {
         type: Date,
     },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date
 });
 
 // Auto-update timestamp
