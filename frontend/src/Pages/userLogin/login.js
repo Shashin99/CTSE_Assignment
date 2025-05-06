@@ -13,7 +13,7 @@ import { FiMail, FiLock, FiLogIn } from "react-icons/fi";
 import Swal from "sweetalert2";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-const UserLogin = () => {
+const UserLogin = ({ onLogin }) => {
     const navigate = useNavigate();
     const colors = {
         primary: "#2c3e50",
@@ -66,42 +66,47 @@ const UserLogin = () => {
 
         setIsSubmitting(true);
         try {
-            const { data } = await axios.post(
+            const response = await axios.post(
                 "http://localhost:5001/api/auth/login",
                 formData
             );
-            if (!data.token) {
-                throw new Error("No token received");
+
+            if (response.data && response.data.token) {
+                const { token, user } = response.data;
+                
+                // Store in localStorage first
+                localStorage.setItem('authToken', token);
+                localStorage.setItem('userData', JSON.stringify(user));
+                
+                // Set axios default header
+                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                
+                // Call the parent's onLogin
+                onLogin(token, user);
+
+                await Swal.fire({
+                    title: "Success!",
+                    text: "Login successful",
+                    icon: "success",
+                    background: colors.light,
+                    confirmButtonColor: colors.primary,
+                    timer: 1500,
+                    showConfirmButton: false,
+                });
+
+                // Navigate to user profile
+                navigate(`/`);
+            } else {
+                throw new Error("Invalid response from server");
             }
-            localStorage.setItem("authToken", data.token);
-
-            const userId = data.user?.id || data.id; // Fallback to `data.id` if needed
-            if (!userId) {
-                throw new Error("User ID not found in response");
-            }
-
-            await Swal.fire({
-                title: "Success!",
-                text: "Login successful",
-                icon: "success",
-                background: colors.light,
-                confirmButtonColor: colors.primary,
-                timer: 1500,
-                showConfirmButton: false,
-            });
-
-            navigate(`/userprofile/${userId}`);
         } catch (error) {
             let errorMsg = "Login failed. Please check your credentials.";
-            console.log(error);
+            console.error("Login error:", error);
 
             if (error.response?.data?.message) {
                 errorMsg = error.response.data.message;
-            }
-            // Handle network errors
-            else if (error.message === "Network Error") {
-                errorMsg =
-                    "Cannot connect to the server. Check your internet connection.";
+            } else if (error.message === "Network Error") {
+                errorMsg = "Cannot connect to the server. Check your internet connection.";
             }
 
             Swal.fire({
@@ -209,6 +214,15 @@ const UserLogin = () => {
                                     {errors.password}
                                 </Form.Control.Feedback>
                             </InputGroup>
+                            <div className="text-end mt-2">
+                                <Button
+                                    variant="link"
+                                    onClick={() => navigate("/forgot-password")}
+                                    style={{ color: colors.primary, padding: 0 }}
+                                >
+                                    Forgot Password?
+                                </Button>
+                            </div>
                         </Form.Group>
 
                         <div className="d-flex justify-content-between align-items-center mt-4">
