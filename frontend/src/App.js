@@ -7,11 +7,11 @@ import EditProfile from "./Pages/userView/EditProfile";
 import ProductList from "./Pages/ProductList";
 import ProductForm from "./Pages/ProductForm";
 import Cart from "./Pages/Cart";
-import Navbar from "./components/Navbar";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
-import ForgotPassword from './components/ForgotPassword';
-import ResetPassword from './components/ResetPassword';
+import ForgotPassword from './Components/ForgotPassword';
+import ResetPassword from './Components/ResetPassword';
+import Navbar from "./Components/Navbar";
 import Home from './Pages/Home';
 
 function App() {
