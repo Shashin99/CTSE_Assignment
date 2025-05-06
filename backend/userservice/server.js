@@ -19,7 +19,7 @@ app.use("/api/cart", cartRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`User Service running on ${PORT}`);
 }).on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
