@@ -71,5 +71,5 @@ jobs:
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: ctse-app-service
-          cluster: devCluster
+          cluster: DevCluster
           wait-for-service-stability: true
