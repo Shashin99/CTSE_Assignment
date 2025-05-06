@@ -1,85 +1,113 @@
 name: CICD Pipeline
 
-# Trigger the workflow on every push to the 'main' branch
 on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["*"]
+    push:
+        branches: ["main"]
+    pull_request:
+        branches: ["main"]
 
 jobs:
-  build:
-    name: Build and Push Docker Image
-    runs-on: ubuntu-latest
+    build:
+        name: Build and Push Docker Images
+        runs-on: ubuntu-latest
 
-    steps:
-      # Step 1: Checkout the source code from the repository
-      - name: Checkout Source Code
-        uses: actions/checkout@v3
+        outputs:
+            auth_image: ${{ steps.auth.outputs.image }}
+            user_image: ${{ steps.user.outputs.image }}
+            gateway_image: ${{ steps.gateway.outputs.image }}
 
-      # Step 2: Configure AWS credentials using secrets stored in GitHub
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-north-1
+        steps:
+            - name: Checkout Source Code
+              uses: actions/checkout@v3
 
-      # Step 3: Login to Amazon ECR (Elastic Container Registry)
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-        with:
-          mask-password: 'true'
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v3
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: eu-north-1
 
-      # Step 4: Build Docker image from the Dockerfile and push to ECR
-      - name: Build, Tag, and Push Docker Image to Amazon ECR
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: latest
-          REPOSITORY: ctsejs-app
-        run: |
-          docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG -f ./userservice/Dockerfile ./userservice
-          docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+            - name: Login to Amazon ECR
+              id: login-ecr
+              uses: aws-actions/amazon-ecr-login@v1
 
-    # Output the image URI for use in the deploy job
-    outputs:
-      image-uri: ${{ steps.build-image.outputs.image }}
+            - name: Build and Push Auth Service
+              id: auth
+              env:
+                  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+                  IMAGE_TAG: latest
+                  REPOSITORY: auth-service
+              run: |
+                  docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./authservice
+                  docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
+                  echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-  deploy:
-    name: Deploy to Amazon ECS
-    runs-on: ubuntu-latest
-    needs: build
+            - name: Build and Push User Service
+              id: user
+              env:
+                  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+                  IMAGE_TAG: latest
+                  REPOSITORY: user-service
+              run: |
+                  docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./userservice
+                  docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
+                  echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-    steps:
-      # Step 1: Checkout the source code again for this job
-      - name: Checkout Source Code
-        uses: actions/checkout@v3
+            - name: Build and Push API Gateway
+              id: gateway
+              env:
+                  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+                  IMAGE_TAG: latest
+                  REPOSITORY: api-gateway
+              run: |
+                  docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./apigateway
+                  docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
+                  echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      # Step 2: Configure AWS credentials again
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-north-1
+    deploy:
+        name: Deploy to Amazon ECS
+        runs-on: ubuntu-latest
+        needs: build
 
-      # Step 3: Replace the image in the ECS task definition with the new one
-      - name: Update ECS Task Definition with New Image
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: ./backend/ctse-app-task-definition.json
-          container-name: ctsejs-app
-          image: ${{ needs.build.outputs.image-uri }}
+        steps:
+            - name: Checkout Source Code
+              uses: actions/checkout@v3
 
-      # Step 4: Deploy the updated task definition to the ECS service
-      - name: Deploy Updated Task Definition to ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ctse-app-service
-          cluster: devCluster
-          wait-for-service-stability: true
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v3
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: eu-north-1
+
+            - name: Update Task Definition - Auth Service
+              id: auth-def
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: ./backend/ctse-app-task-definition.json
+                  container-name: auth-service
+                  image: ${{ needs.build.outputs.auth_image }}
+
+            - name: Update Task Definition - User Service
+              id: user-def
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: ${{ steps.auth-def.outputs.task-definition }}
+                  container-name: user-service
+                  image: ${{ needs.build.outputs.user_image }}
+
+            - name: Update Task Definition - API Gateway
+              id: gateway-def
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: ${{ steps.user-def.outputs.task-definition }}
+                  container-name: api-gateway
+                  image: ${{ needs.build.outputs.gateway_image }}
+
+            - name: Deploy Updated Task Definition to ECS
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  task-definition: ${{ steps.gateway-def.outputs.task-definition }}
+                  service: ctse-app-service
+                  cluster: devCluster
+                  wait-for-service-stability: true
