@@ -90,6 +90,6 @@
     },
     "registeredAt": "2025-05-06T03:56:36.315Z",
     "registeredBy": "arn:aws:iam::412381758494:user/Shashin",
-    "enableFaultInjection": false,
+    "enableFaultInjection": true,
     "tags": []
 }
