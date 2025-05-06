@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Build and Push Docker Images
+    name: Build and Push UserService Docker Image
     runs-on: ubuntu-latest
 
     steps:
@@ -28,44 +28,19 @@ jobs:
         with:
           mask-password: 'true'
 
-      # Build and Push Auth Service
-      - name: Build and Push Auth Service
-        id: auth
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: latest
-          REPOSITORY: auth-service
-        run: |
-          docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./backend/authservice
-          docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-
-      # Build and Push User Service
-      - name: Build and Push User Service
+      - name: Build and Push UserService
         id: user
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: latest
-          REPOSITORY: user-service
+          REPOSITORY: ctsejs-app
         run: |
           docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./backend/userservice
           docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      # Build and Push API Gateway
-      - name: Build and Push API Gateway
-        id: apigateway
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: latest
-          REPOSITORY: api-gateway
-        run: |
-          docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./backend/APIGateway
-          docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-
     outputs:
-      image-uri: ${{ steps.apigateway.outputs.image }}
+      image-uri: ${{ steps.user.outputs.image }}
 
   deploy:
     name: Deploy to Amazon ECS
