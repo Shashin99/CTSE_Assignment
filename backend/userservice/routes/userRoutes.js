@@ -1,13 +1,22 @@
 import express from "express";
 import verifyToken from "../middleware/authMiddleware.js";
 import {
+    registerUser,
     getUsers,
     getUserById,
     updateUser,
-    deleteUser
+    deleteUser,
+    loginUser,
+    verifyToken,
+    refreshToken,
+    forgotPassword,
+    resetPassword,
 } from "../controllers/userController.js";
 
 const router = express.Router();
+
+// User registration
+router.post("/register", registerUser);
 
 // Get all users
 router.get("/", getUsers);
@@ -20,5 +29,20 @@ router.put("/:id", verifyToken, updateUser);
 
 // Delete user
 router.delete("/:id", verifyToken, deleteUser);
+
+// User login
+router.post("/login", loginUser);
+
+// Verify token
+router.get("/verify", verifyToken);
+
+// Refresh token
+router.post("/refresh", refreshToken);
+
+// Forgot password
+router.post("/forgot-password", forgotPassword);
+
+// Reset password
+router.post("/reset-password", resetPassword);
 
 export default router;
