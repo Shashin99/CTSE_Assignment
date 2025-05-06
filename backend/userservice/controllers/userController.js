@@ -264,7 +264,7 @@ export const loginUser = async (req, res) => {
 };
 
 // Verify token
-export const verifyToken = async (req, res) => {
+export const verifyTokenReg = async (req, res) => {
     try {
         const token = req.headers.authorization?.split(' ')[1];
         

@@ -7,7 +7,7 @@ import {
     updateUser,
     deleteUser,
     loginUser,
-    verifyToken,
+    verifyTokenReg,
     refreshToken,
     forgotPassword,
     resetPassword,
@@ -34,7 +34,7 @@ router.delete("/:id", verifyToken, deleteUser);
 router.post("/login", loginUser);
 
 // Verify token
-router.get("/verify", verifyToken);
+router.get("/verify", verifyTokenReg);
 
 // Refresh token
 router.post("/refresh", refreshToken);

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
     Container,
     Row,
@@ -10,10 +10,10 @@ import {
     Carousel,
     Badge,
     Spinner,
-} from 'react-bootstrap';
-import { FiShoppingCart, FiHeart, FiStar } from 'react-icons/fi';
-import Swal from 'sweetalert2';
-import 'bootstrap/dist/css/bootstrap.min.css';
+} from "react-bootstrap";
+import { FiShoppingCart, FiHeart, FiStar } from "react-icons/fi";
+import Swal from "sweetalert2";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const Home = () => {
     const navigate = useNavigate();
@@ -38,69 +38,75 @@ const Home = () => {
 
     const fetchProducts = async () => {
         try {
-            const response = await axios.get('http://localhost:5002/api/products');
+            const response = await axios.get(
+                "http://localhost:5000/api/products"
+            );
             setProducts(response.data);
             // Set featured products (first 4 products)
             setFeaturedProducts(response.data.slice(0, 4));
             setLoading(false);
         } catch (err) {
-            console.error('Error fetching products:', err);
-            setError('Failed to load products');
+            console.error("Error fetching products:", err);
+            setError("Failed to load products");
             setLoading(false);
         }
     };
 
     const handleAddToCart = async (productId) => {
         try {
-            const token = localStorage.getItem('authToken');
+            const token = localStorage.getItem("authToken");
             if (!token) {
                 Swal.fire({
-                    title: 'Login Required',
-                    text: 'Please login to add items to cart',
-                    icon: 'warning',
+                    title: "Login Required",
+                    text: "Please login to add items to cart",
+                    icon: "warning",
                     showCancelButton: true,
                     confirmButtonColor: colors.primary,
                     cancelButtonColor: colors.secondary,
-                    confirmButtonText: 'Login',
-                    cancelButtonText: 'Cancel'
+                    confirmButtonText: "Login",
+                    cancelButtonText: "Cancel",
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        navigate('/login');
+                        navigate("/login");
                     }
                 });
                 return;
             }
 
-            const userData = JSON.parse(localStorage.getItem('userData'));
+            const userData = JSON.parse(localStorage.getItem("userData"));
             const config = {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                    'X-User-ID': userData._id
-                }
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                    "X-User-ID": userData._id,
+                },
             };
 
-            await axios.post('http://localhost:5002/api/cart', {
-                productId,
-                quantity: 1,
-                userId: userData._id
-            }, config);
+            await axios.post(
+                "http://localhost:5000/api/cart",
+                {
+                    productId,
+                    quantity: 1,
+                    userId: userData._id,
+                },
+                config
+            );
 
             Swal.fire({
-                title: 'Success!',
-                text: 'Product added to cart',
-                icon: 'success',
+                title: "Success!",
+                text: "Product added to cart",
+                icon: "success",
                 background: colors.light,
                 confirmButtonColor: colors.primary,
                 timer: 1500,
                 showConfirmButton: false,
             });
         } catch (err) {
-            console.error('Error adding to cart:', err);
+            console.error("Error adding to cart:", err);
             Swal.fire({
-                title: 'Error!',
-                text: 'Failed to add product to cart',
-                icon: 'error',
+                title: "Error!",
+                text: "Failed to add product to cart",
+                icon: "error",
                 background: colors.light,
                 confirmButtonColor: colors.primary,
             });
@@ -112,8 +118,8 @@ const Home = () => {
             <div className="position-relative">
                 <Card.Img
                     variant="top"
-                    src={product.image || 'https://via.placeholder.com/300'}
-                    style={{ height: '300px', objectFit: 'cover' }}
+                    src={product.image || "https://via.placeholder.com/300"}
+                    style={{ height: "300px", objectFit: "cover" }}
                 />
                 {product.discount && (
                     <Badge
@@ -132,8 +138,12 @@ const Home = () => {
                 </Button>
             </div>
             <Card.Body>
-                <Card.Title className="text-truncate">{product.name}</Card.Title>
-                <Card.Text className="text-muted">{product.description}</Card.Text>
+                <Card.Title className="text-truncate">
+                    {product.name}
+                </Card.Title>
+                <Card.Text className="text-muted">
+                    {product.description}
+                </Card.Text>
                 <div className="d-flex justify-content-between align-items-center">
                     <div>
                         {product.discount ? (
@@ -142,7 +152,11 @@ const Home = () => {
                                     ${product.price}
                                 </span>
                                 <span className="text-danger fw-bold">
-                                    ${(product.price * (1 - product.discount / 100)).toFixed(2)}
+                                    $
+                                    {(
+                                        product.price *
+                                        (1 - product.discount / 100)
+                                    ).toFixed(2)}
                                 </span>
                             </>
                         ) : (
@@ -151,7 +165,7 @@ const Home = () => {
                     </div>
                     <div className="d-flex align-items-center">
                         <FiStar className="text-warning me-1" />
-                        <span>{product.rating || '4.5'}</span>
+                        <span>{product.rating || "4.5"}</span>
                     </div>
                 </div>
             </Card.Body>
@@ -160,7 +174,10 @@ const Home = () => {
 
     if (loading) {
         return (
-            <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
+            <Container
+                className="d-flex justify-content-center align-items-center"
+                style={{ minHeight: "80vh" }}
+            >
                 <Spinner animation="border" variant="primary" />
             </Container>
         );
@@ -168,8 +185,14 @@ const Home = () => {
 
     if (error) {
         return (
-            <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
-                <Card className="p-4" style={{ maxWidth: '500px', width: '100%' }}>
+            <Container
+                className="d-flex justify-content-center align-items-center"
+                style={{ minHeight: "80vh" }}
+            >
+                <Card
+                    className="p-4"
+                    style={{ maxWidth: "500px", width: "100%" }}
+                >
                     <Card.Body className="text-center">
                         <h4 className="text-danger">{error}</h4>
                     </Card.Body>
@@ -185,16 +208,20 @@ const Home = () => {
                 <Container>
                     <Row className="align-items-center">
                         <Col md={6}>
-                            <h1 className="display-4 fw-bold" style={{ color: colors.primary }}>
+                            <h1
+                                className="display-4 fw-bold"
+                                style={{ color: colors.primary }}
+                            >
                                 Discover Our Collection
                             </h1>
                             <p className="lead text-muted">
-                                Explore our curated selection of premium products
+                                Explore our curated selection of premium
+                                products
                             </p>
                             <Button
                                 variant="primary"
                                 size="lg"
-                                onClick={() => navigate('/products')}
+                                onClick={() => navigate("/products")}
                                 style={{ backgroundColor: colors.primary }}
                             >
                                 Shop Now
@@ -206,9 +233,15 @@ const Home = () => {
                                     <Carousel.Item key={product._id}>
                                         <img
                                             className="d-block w-100"
-                                            src={product.image || 'https://via.placeholder.com/800x400'}
+                                            src={
+                                                product.image ||
+                                                "https://via.placeholder.com/800x400"
+                                            }
                                             alt={product.name}
-                                            style={{ height: '400px', objectFit: 'cover' }}
+                                            style={{
+                                                height: "400px",
+                                                objectFit: "cover",
+                                            }}
                                         />
                                         <Carousel.Caption>
                                             <h3>{product.name}</h3>
@@ -224,7 +257,10 @@ const Home = () => {
 
             {/* Featured Products Section */}
             <Container className="py-5">
-                <h2 className="text-center mb-4" style={{ color: colors.primary }}>
+                <h2
+                    className="text-center mb-4"
+                    style={{ color: colors.primary }}
+                >
                     Featured Products
                 </h2>
                 <Row xs={1} md={2} lg={4} className="g-4">
@@ -239,19 +275,34 @@ const Home = () => {
             {/* Categories Section */}
             <div className="bg-light py-5">
                 <Container>
-                    <h2 className="text-center mb-4" style={{ color: colors.primary }}>
+                    <h2
+                        className="text-center mb-4"
+                        style={{ color: colors.primary }}
+                    >
                         Shop by Category
                     </h2>
                     <Row className="g-4">
-                        {['Electronics', 'Clothing', 'Home & Living', 'Beauty'].map((category) => (
+                        {[
+                            "Electronics",
+                            "Clothing",
+                            "Home & Living",
+                            "Beauty",
+                        ].map((category) => (
                             <Col key={category} md={3}>
                                 <Card className="h-100 shadow-sm">
                                     <Card.Body className="text-center">
                                         <h5>{category}</h5>
                                         <Button
                                             variant="outline-primary"
-                                            onClick={() => navigate(`/products?category=${category}`)}
-                                            style={{ borderColor: colors.primary, color: colors.primary }}
+                                            onClick={() =>
+                                                navigate(
+                                                    `/products?category=${category}`
+                                                )
+                                            }
+                                            style={{
+                                                borderColor: colors.primary,
+                                                color: colors.primary,
+                                            }}
                                         >
                                             View Products
                                         </Button>
@@ -265,19 +316,25 @@ const Home = () => {
 
             {/* Special Offers Section */}
             <Container className="py-5">
-                <h2 className="text-center mb-4" style={{ color: colors.primary }}>
+                <h2
+                    className="text-center mb-4"
+                    style={{ color: colors.primary }}
+                >
                     Special Offers
                 </h2>
                 <Row className="g-4">
-                    {products.filter(p => p.discount).slice(0, 3).map((product) => (
-                        <Col key={product._id} md={4}>
-                            <ProductCard product={product} />
-                        </Col>
-                    ))}
+                    {products
+                        .filter((p) => p.discount)
+                        .slice(0, 3)
+                        .map((product) => (
+                            <Col key={product._id} md={4}>
+                                <ProductCard product={product} />
+                            </Col>
+                        ))}
                 </Row>
             </Container>
         </div>
     );
 };
 
-export default Home; 
+export default Home;

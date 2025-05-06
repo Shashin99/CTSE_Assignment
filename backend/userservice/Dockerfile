@@ -11,14 +11,14 @@ RUN npm install
 
 # Copy the rest of the application code to the working directory
 COPY . .
-# RUN echo "mongodb+srv://CTSE:CTSE@ctse.kewjrct.mongodb.net/ctse?retryWrites=true&w=majority&appName=CTSE" > .env
+RUN echo "mongodb+srv://CTSE:CTSE@ctse.kewjrct.mongodb.net/ctse?retryWrites=true&w=majority&appName=CTSE" > .env
 
 # Environment variables (override with docker run -e)
-ENV PORT=5002
+ENV PORT=5000
 # ENV MONGO_URI= mongodb+srv://CTSE:CTSE@ctse.kewjrct.mongodb.net/ctse?retryWrites=true&w=majority&appName=CTSE
 
-# Expose port 5002 for the application
-EXPOSE 5002
+# Expose port 5000 for the application
+EXPOSE 5000
 
 # Start the application
 CMD [ "node", "server.js" ]

@@ -9,9 +9,9 @@ import ProductForm from "./Pages/ProductForm";
 import Cart from "./Pages/Cart";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
-import ForgotPassword from './Components/ForgotPassword';
-import ResetPassword from './Components/ResetPassword';
-import Navbar from "./Components/Navbar";
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
+import Navbar from "./components/Navbar";
 import Home from './Pages/Home';
 
 function App() {

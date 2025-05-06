@@ -102,7 +102,7 @@ const UserRegister = () => {
         setIsSubmitting(true);
         try {
             await axios.post(
-                "http://localhost:5001/api/auth/register",
+                "http://localhost:5000/api/users/register",
                 formData
             );
             showAlert("Success!", "Registration successful", "success");

@@ -1,8 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Form, Button, Card, Container, Spinner, Row, Col } from "react-bootstrap";
-import { FiUser, FiMail, FiPhone, FiCreditCard, FiMapPin } from "react-icons/fi";
+import {
+    Form,
+    Button,
+    Card,
+    Container,
+    Spinner,
+    Row,
+    Col,
+} from "react-bootstrap";
+import {
+    FiUser,
+    FiMail,
+    FiPhone,
+    FiCreditCard,
+    FiMapPin,
+} from "react-icons/fi";
 import Swal from "sweetalert2";
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -14,7 +28,7 @@ const EditProfile = () => {
         email: "",
         contactNumber: "",
         nic: "",
-        address: ""
+        address: "",
     });
     const [errors, setErrors] = useState({});
 
@@ -23,7 +37,7 @@ const EditProfile = () => {
         secondary: "#f9a825",
         danger: "#dc3545",
         light: "#f8f9fa",
-        success: "#28a745"
+        success: "#28a745",
     };
 
     useEffect(() => {
@@ -31,13 +45,13 @@ const EditProfile = () => {
             try {
                 const token = localStorage.getItem("authToken");
                 const userData = JSON.parse(localStorage.getItem("userData"));
-                
+
                 if (!userData || !userData._id) {
                     throw new Error("No user data found");
                 }
 
                 const response = await axios.get(
-                    `http://localhost:5002/api/users/${userData._id}`,
+                    `http://localhost:5000/api/users/${userData._id}`,
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
                 setFormData({
@@ -45,7 +59,7 @@ const EditProfile = () => {
                     email: response.data.email || "",
                     contactNumber: response.data.contactNumber || "",
                     nic: response.data.nic || "",
-                    address: response.data.address || ""
+                    address: response.data.address || "",
                 });
                 setLoading(false);
             } catch (error) {
@@ -63,15 +77,15 @@ const EditProfile = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
-            [name]: value
+            [name]: value,
         }));
         // Clear error when user starts typing
         if (errors[name]) {
-            setErrors(prev => ({
+            setErrors((prev) => ({
                 ...prev,
-                [name]: ""
+                [name]: "",
             }));
         }
     };
@@ -117,13 +131,13 @@ const EditProfile = () => {
         try {
             const token = localStorage.getItem("authToken");
             const userData = JSON.parse(localStorage.getItem("userData"));
-            
+
             if (!userData || !userData._id) {
                 throw new Error("No user data found");
             }
 
             await axios.put(
-                `http://localhost:5002/api/users/${userData._id}`,
+                `http://localhost:5000/api/users/${userData._id}`,
                 formData,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -138,14 +152,15 @@ const EditProfile = () => {
                 icon: "success",
                 confirmButtonColor: colors.primary,
                 timer: 1500,
-                showConfirmButton: false
+                showConfirmButton: false,
             });
 
             navigate("/userprofile");
         } catch (error) {
             Swal.fire({
                 title: "Error",
-                text: error.response?.data?.message || "Failed to update profile",
+                text:
+                    error.response?.data?.message || "Failed to update profile",
                 icon: "error",
                 confirmButtonColor: colors.primary,
             });
@@ -154,7 +169,10 @@ const EditProfile = () => {
 
     if (loading) {
         return (
-            <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
+            <Container
+                className="d-flex justify-content-center align-items-center"
+                style={{ minHeight: "100vh" }}
+            >
                 <Spinner animation="border" variant="primary" />
             </Container>
         );
@@ -163,7 +181,10 @@ const EditProfile = () => {
     return (
         <Container className="py-5">
             <Card className="shadow-lg mx-auto" style={{ maxWidth: "800px" }}>
-                <Card.Header className="text-center py-3" style={{ backgroundColor: colors.primary, color: "white" }}>
+                <Card.Header
+                    className="text-center py-3"
+                    style={{ backgroundColor: colors.primary, color: "white" }}
+                >
                     <h3 className="mb-0">Edit My Profile</h3>
                 </Card.Header>
 
@@ -173,7 +194,10 @@ const EditProfile = () => {
                             <Col md={6}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>
-                                        <FiUser className="me-2" style={{ color: colors.primary }} />
+                                        <FiUser
+                                            className="me-2"
+                                            style={{ color: colors.primary }}
+                                        />
                                         Name
                                     </Form.Label>
                                     <Form.Control
@@ -191,7 +215,10 @@ const EditProfile = () => {
                             <Col md={6}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>
-                                        <FiMail className="me-2" style={{ color: colors.primary }} />
+                                        <FiMail
+                                            className="me-2"
+                                            style={{ color: colors.primary }}
+                                        />
                                         Email
                                     </Form.Label>
                                     <Form.Control
@@ -212,7 +239,10 @@ const EditProfile = () => {
                             <Col md={6}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>
-                                        <FiPhone className="me-2" style={{ color: colors.primary }} />
+                                        <FiPhone
+                                            className="me-2"
+                                            style={{ color: colors.primary }}
+                                        />
                                         Contact Number
                                     </Form.Label>
                                     <Form.Control
@@ -230,7 +260,10 @@ const EditProfile = () => {
                             <Col md={6}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>
-                                        <FiCreditCard className="me-2" style={{ color: colors.primary }} />
+                                        <FiCreditCard
+                                            className="me-2"
+                                            style={{ color: colors.primary }}
+                                        />
                                         NIC
                                     </Form.Label>
                                     <Form.Control
@@ -249,7 +282,10 @@ const EditProfile = () => {
 
                         <Form.Group className="mb-4">
                             <Form.Label>
-                                <FiMapPin className="me-2" style={{ color: colors.primary }} />
+                                <FiMapPin
+                                    className="me-2"
+                                    style={{ color: colors.primary }}
+                                />
                                 Address
                             </Form.Label>
                             <Form.Control
@@ -275,7 +311,7 @@ const EditProfile = () => {
                                 style={{
                                     backgroundColor: colors.primary,
                                     borderColor: colors.primary,
-                                    minWidth: "150px"
+                                    minWidth: "150px",
                                 }}
                             >
                                 Update Profile
@@ -288,4 +324,4 @@ const EditProfile = () => {
     );
 };
 
-export default EditProfile; 
+export default EditProfile;

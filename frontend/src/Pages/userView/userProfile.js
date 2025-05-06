@@ -6,7 +6,7 @@ import { FiUser, FiEdit, FiTrash2 } from "react-icons/fi";
 import Swal from "sweetalert2";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5002";
+// const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 const UserProfile = () => {
     const { id } = useParams(); // Keep the ID from URL
@@ -27,12 +27,12 @@ const UserProfile = () => {
                 const token = localStorage.getItem("authToken");
                 const userData = JSON.parse(localStorage.getItem("userData"));
                 console.log(userData);
-                
+
                 const response = await axios.get(
-                    `http://localhost:5002/api/users/${userData.id}`,
+                    `http://localhost:5000/api/users/${userData.id}`,
                     { headers: { Authorization: `Bearer ${token}` } }
-                )
-                
+                );
+
                 setUser(response.data);
                 setLoading(false);
             } catch (error) {
@@ -72,9 +72,12 @@ const UserProfile = () => {
             if (result.isConfirmed) {
                 try {
                     const token = localStorage.getItem("authToken");
-                    await axios.delete(`http://localhost:5002/api/users/${id}`, {
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
+                    await axios.delete(
+                        `http://localhost:5000/api/users/${id}`,
+                        {
+                            headers: { Authorization: `Bearer ${token}` },
+                        }
+                    );
                     localStorage.removeItem("authToken");
                     await Swal.fire({
                         title: "Account Deleted!",
@@ -133,7 +136,8 @@ const UserProfile = () => {
                                     Personal Details
                                 </h5>
                                 <p>
-                                    <strong>NIC:</strong> {user?.user.nic || "N/A"}
+                                    <strong>NIC:</strong>{" "}
+                                    {user?.user.nic || "N/A"}
                                 </p>
                                 <p>
                                     <strong>Contact:</strong>{" "}
