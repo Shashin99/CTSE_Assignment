@@ -56,7 +56,7 @@ export const registerUser = async (req, res) => {
 
 // Get single user by ID
 export const getUserById = async (req, res) => {
-    if (req.params.id !== req.userId) { 
+    if (req.params.id !== req.userId) {
         return res.status(403).json({ message: "Unauthorized" });
     }
 
@@ -212,7 +212,6 @@ export const deleteUser = async (req, res) => {
     }
 };
 
-
 // login user
 export const loginUser = async (req, res) => {
     try {
@@ -221,16 +220,16 @@ export const loginUser = async (req, res) => {
         // Find user by email
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(401).json({ 
-                message: "Invalid credentials" 
+            return res.status(401).json({
+                message: "Invalid credentials",
             });
         }
 
         // Check if the password matches the hashed password in the database
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            return res.status(401).json({ 
-                message: "Invalid credentials" 
+            return res.status(401).json({
+                message: "Invalid credentials",
             });
         }
 
@@ -252,13 +251,13 @@ export const loginUser = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 nic: user.nic,
-                contactNumber: user.contactNumber
-            }
+                contactNumber: user.contactNumber,
+            },
         });
     } catch (error) {
         console.error("Login error:", error);
-        res.status(500).json({ 
-            message: "Internal server error"
+        res.status(500).json({
+            message: "Internal server error",
         });
     }
 };
@@ -266,28 +265,32 @@ export const loginUser = async (req, res) => {
 // Verify token
 export const verifyTokenReg = async (req, res) => {
     try {
-        const token = req.headers.authorization?.split(' ')[1];
-        
+        const token = req.headers.authorization?.split(" ")[1];
+
         if (!token) {
-            return res.status(401).json({ valid: false, message: "No token provided" });
+            return res
+                .status(401)
+                .json({ valid: false, message: "No token provided" });
         }
 
         const decoded = jwt.verify(token, "shashin99");
         const user = await User.findById(decoded.userId);
 
         if (!user) {
-            return res.status(401).json({ valid: false, message: "User not found" });
+            return res
+                .status(401)
+                .json({ valid: false, message: "User not found" });
         }
 
-        res.status(200).json({ 
+        res.status(200).json({
             valid: true,
             user: {
                 id: user._id,
                 name: user.name,
                 email: user.email,
                 nic: user.nic,
-                contactNumber: user.contactNumber
-            }
+                contactNumber: user.contactNumber,
+            },
         });
     } catch (error) {
         console.error("Token verification error:", error);
@@ -299,9 +302,11 @@ export const verifyTokenReg = async (req, res) => {
 export const refreshToken = async (req, res) => {
     try {
         const { refreshToken } = req.body;
-        
+
         if (!refreshToken) {
-            return res.status(401).json({ message: "No refresh token provided" });
+            return res
+                .status(401)
+                .json({ message: "No refresh token provided" });
         }
 
         const decoded = jwt.verify(refreshToken, "shashin99");
@@ -316,15 +321,15 @@ export const refreshToken = async (req, res) => {
             expiresIn: "1h",
         });
 
-        res.status(200).json({ 
+        res.status(200).json({
             token: newToken,
             user: {
                 id: user._id,
                 name: user.name,
                 email: user.email,
                 nic: user.nic,
-                contactNumber: user.contactNumber
-            }
+                contactNumber: user.contactNumber,
+            },
         });
     } catch (error) {
         console.error("Token refresh error:", error);
@@ -336,19 +341,19 @@ export const refreshToken = async (req, res) => {
 export const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
-        
+
         if (!email) {
             return res.status(400).json({ message: "Email is required" });
         }
 
         const user = await User.findOne({ email });
-        
+
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
         // Generate reset token
-        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetToken = crypto.randomBytes(32).toString("hex");
         user.resetPasswordToken = resetToken;
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
         await user.save();
@@ -356,26 +361,30 @@ export const forgotPassword = async (req, res) => {
         // Send email using Mailtrap
         const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
         const mailOptions = {
-            from: 'your-email@example.com',
+            from: "your-email@example.com",
             to: email,
-            subject: 'Password Reset Request',
+            subject: "Password Reset Request",
             html: `
                 <p>You requested a password reset</p>
                 <p>Click this <a href="${resetUrl}">link</a> to reset your password.</p>
                 <p>This link will expire in 1 hour.</p>
-            `
+            `,
         };
 
         try {
             await transporter.sendMail(mailOptions);
-            return res.status(200).json({ message: "Password reset email sent" });
+            return res
+                .status(200)
+                .json({ message: "Password reset email sent" });
         } catch (emailError) {
             console.error("Email sending error:", emailError);
             // If email fails, remove the reset token
             user.resetPasswordToken = undefined;
             user.resetPasswordExpires = undefined;
             await user.save();
-            return res.status(500).json({ message: "Failed to send reset email" });
+            return res
+                .status(500)
+                .json({ message: "Failed to send reset email" });
         }
     } catch (error) {
         console.error("Forgot password error:", error);
@@ -389,11 +398,13 @@ export const resetPassword = async (req, res) => {
         const { token, newPassword } = req.body;
         const user = await User.findOne({
             resetPasswordToken: token,
-            resetPasswordExpires: { $gt: Date.now() }
+            resetPasswordExpires: { $gt: Date.now() },
         });
 
         if (!user) {
-            return res.status(400).json({ message: "Invalid or expired reset token" });
+            return res
+                .status(400)
+                .json({ message: "Invalid or expired reset token" });
         }
 
         // Hash new password
@@ -403,7 +414,9 @@ export const resetPassword = async (req, res) => {
         user.resetPasswordExpires = undefined;
         await user.save();
 
-        res.status(200).json({ message: "Password has been reset successfully" });
+        res.status(200).json({
+            message: "Password has been reset successfully",
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
