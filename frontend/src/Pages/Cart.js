@@ -182,6 +182,62 @@ const Cart = () => {
         }
     };
 
+    const handleCheckout = async () => {
+        try {
+            const result = await Swal.fire({
+                title: 'Confirm Checkout',
+                text: "Are you sure you want to proceed with the checkout?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: colors.primary,
+                cancelButtonColor: colors.secondary,
+                confirmButtonText: 'Yes, proceed!',
+                background: colors.light,
+            });
+
+            if (result.isConfirmed) {
+                const response = await cartApi.post('/api/cart/checkout');
+                
+                // Show success message
+                await Swal.fire({
+                    title: 'Success!',
+                    text: response.data.message,
+                    icon: 'success',
+                    background: colors.light,
+                    confirmButtonColor: colors.primary,
+                });
+
+                // Refresh cart data
+                fetchCart();
+                // Clear selected items
+                setSelectedItems([]);
+            }
+        } catch (err) {
+            console.error('Checkout error:', err);
+            if (err.response?.status === 401) {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userData');
+                
+                Swal.fire({
+                    title: 'Session Expired',
+                    text: 'Please login again',
+                    icon: 'warning',
+                    confirmButtonColor: colors.primary,
+                }).then(() => {
+                    navigate('/login');
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Failed to process checkout. Please try again.',
+                    icon: 'error',
+                    background: colors.light,
+                    confirmButtonColor: colors.primary,
+                });
+            }
+        }
+    };
+
     if (loading) {
         return (
             <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
@@ -373,6 +429,7 @@ const Cart = () => {
                                     variant="primary"
                                     size="lg"
                                     disabled={selectedItems.length === 0}
+                                    onClick={handleCheckout}
                                     style={{ 
                                         backgroundColor: colors.primary,
                                         minWidth: '200px'

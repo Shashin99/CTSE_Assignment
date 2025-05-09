@@ -257,4 +257,38 @@ export const clearCart = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
+};
+
+// Checkout and clear cart
+export const checkout = async (req, res) => {
+    try {
+        console.log('Processing checkout for user:', req.userId);
+        
+        if (!req.userId) {
+            console.log('No user ID found in request');
+            return res.status(401).json({ message: 'User ID not found' });
+        }
+
+        const cart = await Cart.findOne({ user: req.userId });
+        
+        if (!cart) {
+            return res.status(404).json({ message: 'Cart not found' });
+        }
+
+        // Clear the cart items
+        cart.items = [];
+        await cart.save();
+        
+        res.status(200).json({ 
+            message: 'Order placed successfully!',
+            orderDetails: {
+                orderId: new Date().getTime().toString(), // Generate a simple order ID
+                timestamp: new Date(),
+                status: 'success'
+            }
+        });
+    } catch (error) {
+        console.error('Error in checkout:', error);
+        res.status(500).json({ message: error.message });
+    }
 }; 
