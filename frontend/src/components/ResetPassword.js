@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { authApi } from '../utils/api';
 import {
     Form,
     Button,
@@ -16,11 +16,11 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 const ResetPassword = () => {
     const [formData, setFormData] = useState({
-        newPassword: "",
-        confirmPassword: "",
+        newPassword: '',
+        confirmPassword: ''
     });
     const [errors, setErrors] = useState({});
-    const [message, setMessage] = useState("");
+    const [message, setMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState(0);
     const navigate = useNavigate();
@@ -61,12 +61,11 @@ const ResetPassword = () => {
 
     const validateForm = () => {
         const newErrors = {};
-
+        
         if (!formData.newPassword) {
             newErrors.newPassword = "New password is required";
         } else if (formData.newPassword.length < 8) {
-            newErrors.newPassword =
-                "Password must be at least 8 characters long";
+            newErrors.newPassword = "Password must be at least 8 characters long";
         }
 
         if (!formData.confirmPassword) {
@@ -81,14 +80,14 @@ const ResetPassword = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({
+        setFormData(prev => ({
             ...prev,
-            [name]: value,
+            [name]: value
         }));
         if (errors[name]) {
-            setErrors((prev) => ({
+            setErrors(prev => ({
                 ...prev,
-                [name]: "",
+                [name]: ''
             }));
         }
     };
@@ -101,16 +100,13 @@ const ResetPassword = () => {
 
         setIsSubmitting(true);
         try {
-            const response = await axios.post(
-                "http://localhost:5000/api/users/reset-password",
-                {
-                    token,
-                    newPassword: formData.newPassword,
-                }
-            );
-
+            const response = await authApi.post('/api/auth/reset-password', {
+                token,
+                newPassword: formData.newPassword
+            });
+            
             setMessage(response.data.message);
-
+            
             await Swal.fire({
                 title: "Success!",
                 text: "Your password has been reset successfully",
@@ -122,16 +118,16 @@ const ResetPassword = () => {
             });
 
             setTimeout(() => {
-                navigate("/login");
+                navigate('/login');
             }, 2000);
         } catch (err) {
             setErrors({
-                submit: err.response?.data?.message || "An error occurred",
+                submit: err.response?.data?.message || 'An error occurred'
             });
-
+            
             Swal.fire({
                 title: "Error",
-                text: err.response?.data?.message || "An error occurred",
+                text: err.response?.data?.message || 'An error occurred',
                 icon: "error",
                 background: colors.light,
                 confirmButtonColor: colors.primary,
@@ -148,9 +144,7 @@ const ResetPassword = () => {
             ) : (
                 <FiX className="text-danger me-2" />
             )}
-            <small className={met ? "text-success" : "text-danger"}>
-                {text}
-            </small>
+            <small className={met ? "text-success" : "text-danger"}>{text}</small>
         </div>
     );
 
@@ -170,9 +164,7 @@ const ResetPassword = () => {
                         borderBottom: `3px solid ${colors.secondary}`,
                     }}
                 >
-                    <h4 className="mb-0 text-white text-center">
-                        RESET PASSWORD
-                    </h4>
+                    <h4 className="mb-0 text-white text-center">RESET PASSWORD</h4>
                 </Card.Header>
 
                 <Card.Body className="p-4">
@@ -198,9 +190,7 @@ const ResetPassword = () => {
                                     isInvalid={!!errors.newPassword}
                                     placeholder="Enter new password"
                                     style={{
-                                        borderColor: errors.newPassword
-                                            ? colors.danger
-                                            : colors.border,
+                                        borderColor: errors.newPassword ? colors.danger : colors.border,
                                     }}
                                     disabled={isSubmitting}
                                 />
@@ -208,36 +198,30 @@ const ResetPassword = () => {
                                     {errors.newPassword}
                                 </Form.Control.Feedback>
                             </InputGroup>
-
+                            
                             {/* Password Strength Indicator */}
                             <div className="mt-2">
-                                <ProgressBar
-                                    now={passwordStrength}
-                                    style={{ height: "5px" }}
-                                    variant={
-                                        passwordStrength <= 25
-                                            ? "danger"
-                                            : passwordStrength <= 50
-                                            ? "warning"
-                                            : passwordStrength <= 75
-                                            ? "info"
-                                            : "success"
-                                    }
+                                <ProgressBar 
+                                    now={passwordStrength} 
+                                    style={{ height: '5px' }}
+                                    variant={passwordStrength <= 25 ? 'danger' : 
+                                            passwordStrength <= 50 ? 'warning' : 
+                                            passwordStrength <= 75 ? 'info' : 'success'}
                                 />
                                 <div className="mt-2">
-                                    <PasswordRequirement
+                                    <PasswordRequirement 
                                         met={formData.newPassword.length >= 8}
                                         text="At least 8 characters long"
                                     />
-                                    <PasswordRequirement
+                                    <PasswordRequirement 
                                         met={/[A-Z]/.test(formData.newPassword)}
                                         text="Contains uppercase letter"
                                     />
-                                    <PasswordRequirement
+                                    <PasswordRequirement 
                                         met={/[a-z]/.test(formData.newPassword)}
                                         text="Contains lowercase letter"
                                     />
-                                    <PasswordRequirement
+                                    <PasswordRequirement 
                                         met={/[0-9]/.test(formData.newPassword)}
                                         text="Contains number"
                                     />
@@ -266,9 +250,7 @@ const ResetPassword = () => {
                                     isInvalid={!!errors.confirmPassword}
                                     placeholder="Confirm new password"
                                     style={{
-                                        borderColor: errors.confirmPassword
-                                            ? colors.danger
-                                            : colors.border,
+                                        borderColor: errors.confirmPassword ? colors.danger : colors.border,
                                     }}
                                     disabled={isSubmitting}
                                 />
@@ -333,4 +315,4 @@ const ResetPassword = () => {
     );
 };
 
-export default ResetPassword;
+export default ResetPassword; 

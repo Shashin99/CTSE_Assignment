@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const config = {
-    JWT_SECRET: process.env.JWT_SECRET || 'your-secret-key'
+    JWT_SECRET: 'shashin99'
 };
 
 export default config;

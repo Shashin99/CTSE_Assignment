@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { authApi } from "../../utils/api";
 import {
     Form,
     Button,
@@ -101,10 +101,7 @@ const UserRegister = () => {
 
         setIsSubmitting(true);
         try {
-            await axios.post(
-                "http://localhost:5000/api/users/register",
-                formData
-            );
+            await authApi.post("/api/auth/register", formData);
             showAlert("Success!", "Registration successful", "success");
             resetForm();
             navigate("/login");

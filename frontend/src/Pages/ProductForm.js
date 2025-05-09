@@ -1,18 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
-import { Form, Button, Card, Container, Spinner } from "react-bootstrap";
-import {
-    FiSave,
-    FiX,
-    FiPackage,
-    FiDollarSign,
-    FiGrid,
-    FiLayers,
-    FiImage,
-} from "react-icons/fi";
-import Swal from "sweetalert2";
-import "bootstrap/dist/css/bootstrap.min.css";
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { productApi } from '../utils/api';
+import { Form, Button, Card, Container, Spinner } from 'react-bootstrap';
+import { FiSave, FiX, FiPackage, FiDollarSign, FiGrid, FiLayers, FiImage } from 'react-icons/fi';
+import Swal from 'sweetalert2';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const ProductForm = () => {
     const colors = {
@@ -28,12 +20,12 @@ const ProductForm = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const [product, setProduct] = useState({
-        name: "",
-        description: "",
-        price: "",
-        category: "",
-        stock: "",
-        image: "",
+        name: '',
+        description: '',
+        price: '',
+        category: '',
+        stock: '',
+        image: ''
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -42,12 +34,10 @@ const ProductForm = () => {
         if (id) {
             const fetchProduct = async () => {
                 try {
-                    const response = await axios.get(
-                        `http://localhost:5000/api/products/${id}`
-                    );
+                    const response = await productApi.get(`/api/products/${id}`);
                     setProduct(response.data);
                 } catch (err) {
-                    setError("Error fetching product");
+                    setError('Error fetching product');
                 }
             };
             fetchProduct();
@@ -56,9 +46,9 @@ const ProductForm = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setProduct((prev) => ({
+        setProduct(prev => ({
             ...prev,
-            [name]: value,
+            [name]: value
         }));
     };
 
@@ -67,56 +57,61 @@ const ProductForm = () => {
         setLoading(true);
         try {
             if (id) {
-                await axios.put(
-                    `http://localhost:5000/api/products/${id}`,
-                    product
-                );
+                await productApi.put(`/api/products/${id}`, product);
                 await Swal.fire({
-                    title: "Success!",
-                    text: "Product updated successfully",
-                    icon: "success",
+                    title: 'Success!',
+                    text: 'Product updated successfully',
+                    icon: 'success',
                     background: colors.light,
                     confirmButtonColor: colors.primary,
                     timer: 1500,
                     showConfirmButton: false,
                 });
             } else {
-                await axios.post("http://localhost:5000/api/products", product);
+                await productApi.post('/api/products', product);
                 await Swal.fire({
-                    title: "Success!",
-                    text: "Product created successfully",
-                    icon: "success",
+                    title: 'Success!',
+                    text: 'Product created successfully',
+                    icon: 'success',
                     background: colors.light,
                     confirmButtonColor: colors.primary,
                     timer: 1500,
                     showConfirmButton: false,
                 });
             }
-            navigate("/products");
+            navigate('/products');
         } catch (err) {
-            Swal.fire({
-                title: "Error!",
-                text: "Failed to save product",
-                icon: "error",
-                background: colors.light,
-                confirmButtonColor: colors.primary,
-            });
+            if (err.response?.status === 401) {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userData');
+                
+                Swal.fire({
+                    title: 'Session Expired',
+                    text: 'Please login again',
+                    icon: 'warning',
+                    confirmButtonColor: colors.primary,
+                }).then(() => {
+                    navigate('/login');
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Failed to save product',
+                    icon: 'error',
+                    background: colors.light,
+                    confirmButtonColor: colors.primary,
+                });
+            }
             setLoading(false);
         }
     };
 
     return (
         <Container className="py-5">
-            <Card
-                className="shadow-sm"
-                style={{ maxWidth: "800px", margin: "0 auto" }}
-            >
+            <Card className="shadow-sm" style={{ maxWidth: '800px', margin: '0 auto' }}>
                 <Card.Body>
-                    <h2
-                        className="text-center mb-4"
-                        style={{ color: colors.primary }}
-                    >
-                        {id ? "Edit Product" : "Create New Product"}
+                    <h2 className="text-center mb-4" style={{ color: colors.primary }}>
+                        {id ? 'Edit Product' : 'Create New Product'}
                     </h2>
 
                     {error && (
@@ -224,25 +219,20 @@ const ProductForm = () => {
                                 variant="primary"
                                 type="submit"
                                 disabled={loading}
-                                style={{
-                                    backgroundColor: colors.primary,
-                                    borderColor: colors.primary,
-                                }}
+                                style={{ backgroundColor: colors.primary, borderColor: colors.primary }}
                             >
                                 {loading ? (
                                     <Spinner animation="border" size="sm" />
                                 ) : (
                                     <>
                                         <FiSave className="me-2" />
-                                        {id
-                                            ? "Update Product"
-                                            : "Create Product"}
+                                        {id ? 'Update Product' : 'Create Product'}
                                     </>
                                 )}
                             </Button>
                             <Button
                                 variant="outline-secondary"
-                                onClick={() => navigate("/products")}
+                                onClick={() => navigate('/products')}
                             >
                                 <FiX className="me-2" />
                                 Cancel
@@ -255,4 +245,4 @@ const ProductForm = () => {
     );
 };
 
-export default ProductForm;
+export default ProductForm; 

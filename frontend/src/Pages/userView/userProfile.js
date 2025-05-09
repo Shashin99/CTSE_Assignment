@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // Keep useParams
-import axios from "axios";
+import { useParams, useNavigate } from "react-router-dom";
+import { userApi } from "../../utils/api";
 import { Button, Card, Container, Spinner } from "react-bootstrap";
 import { FiUser, FiEdit, FiTrash2 } from "react-icons/fi";
 import Swal from "sweetalert2";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+// const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5002";
 
 const UserProfile = () => {
-    const { id } = useParams(); // Keep the ID from URL
+    const { id } = useParams();
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -24,20 +24,15 @@ const UserProfile = () => {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const token = localStorage.getItem("authToken");
                 const userData = JSON.parse(localStorage.getItem("userData"));
                 console.log(userData);
-
-                const response = await axios.get(
-                    `http://localhost:5000/api/users/${userData.id}`,
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-
+                
+                const response = await userApi.get(`/api/users/${userData.id}`);
+                
                 setUser(response.data);
                 setLoading(false);
             } catch (error) {
                 if (error.response?.status === 401) {
-                    // Token expired or invalid
                     Swal.fire({
                         title: "Session Expired",
                         text: "Please login again",
@@ -71,13 +66,7 @@ const UserProfile = () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const token = localStorage.getItem("authToken");
-                    await axios.delete(
-                        `http://localhost:5000/api/users/${id}`,
-                        {
-                            headers: { Authorization: `Bearer ${token}` },
-                        }
-                    );
+                    await userApi.delete(`/api/users/${id}`);
                     localStorage.removeItem("authToken");
                     await Swal.fire({
                         title: "Account Deleted!",
@@ -88,14 +77,24 @@ const UserProfile = () => {
                     });
                     navigate("/login");
                 } catch (error) {
-                    Swal.fire({
-                        title: "Deletion Failed!",
-                        text:
-                            error.response?.data?.message ||
-                            "Could not delete account",
-                        icon: "error",
-                        confirmButtonColor: colors.primary,
-                    });
+                    if (error.response?.status === 401) {
+                        localStorage.removeItem("authToken");
+                        Swal.fire({
+                            title: "Session Expired",
+                            text: "Please login again",
+                            icon: "warning",
+                            confirmButtonColor: colors.primary,
+                        }).then(() => {
+                            navigate("/login");
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Deletion Failed!",
+                            text: error.response?.data?.message || "Could not delete account",
+                            icon: "error",
+                            confirmButtonColor: colors.primary,
+                        });
+                    }
                 }
             }
         });
@@ -136,8 +135,7 @@ const UserProfile = () => {
                                     Personal Details
                                 </h5>
                                 <p>
-                                    <strong>NIC:</strong>{" "}
-                                    {user?.user.nic || "N/A"}
+                                    <strong>NIC:</strong> {user?.user.nic || "N/A"}
                                 </p>
                                 <p>
                                     <strong>Contact:</strong>{" "}
@@ -174,7 +172,7 @@ const UserProfile = () => {
                     <div className="d-flex justify-content-center gap-3 mt-4">
                         <Button
                             variant="primary"
-                            onClick={() => navigate("/edit-profile")}
+                            onClick={() => navigate("/editprofile")}
                             className="d-flex align-items-center"
                             style={{
                                 backgroundColor: colors.primary,

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Navbar as BootstrapNavbar, Nav, Button, Badge } from "react-bootstrap";
-import { FiShoppingCart, FiUser, FiLogOut } from "react-icons/fi";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Navbar as BootstrapNavbar, Nav, Button, Badge } from 'react-bootstrap';
+import { FiShoppingCart, FiUser, FiLogOut } from 'react-icons/fi';
+import { cartApi } from '../utils/api';
 
 const Navbar = ({ isAuthenticated: propIsAuthenticated, onLogout }) => {
     const [cartItemCount, setCartItemCount] = useState(0);
@@ -18,57 +18,38 @@ const Navbar = ({ isAuthenticated: propIsAuthenticated, onLogout }) => {
 
     const fetchCartItemCount = async () => {
         try {
-            const token = localStorage.getItem("authToken");
-            if (!token) {
-                setCartItemCount(0);
-                return;
-            }
-
-            const response = await axios.get("http://localhost:5000/api/cart", {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            const totalItems = response.data.items.reduce(
-                (sum, item) => sum + item.quantity,
-                0
-            );
+            const response = await cartApi.get('/api/cart');
+            const totalItems = response.data.items.reduce((sum, item) => sum + item.quantity, 0);
             setCartItemCount(totalItems);
         } catch (error) {
-            console.error("Error fetching cart count:", error);
+            console.error('Error fetching cart count:', error);
             setCartItemCount(0);
         }
     };
 
     const handleLogout = () => {
         onLogout();
-        navigate("/login");
+        navigate('/login');
     };
 
     return (
         <BootstrapNavbar bg="dark" variant="dark" expand="lg" className="px-4">
-            <BootstrapNavbar.Brand as={Link} to="/">
-                E-Commerce
-            </BootstrapNavbar.Brand>
+            <BootstrapNavbar.Brand as={Link} to="/">E-Commerce</BootstrapNavbar.Brand>
             <BootstrapNavbar.Toggle aria-controls="basic-navbar-nav" />
             <BootstrapNavbar.Collapse id="basic-navbar-nav">
                 <Nav className="me-auto">
-                    <Nav.Link as={Link} to="/products">
-                        Products
-                    </Nav.Link>
+                    <Nav.Link as={Link} to="/products">Products</Nav.Link>
                 </Nav>
                 <Nav>
                     {propIsAuthenticated ? (
                         <>
-                            <Nav.Link
-                                as={Link}
-                                to="/cart"
-                                className="position-relative"
-                            >
+                            <Nav.Link as={Link} to="/cart" className="position-relative">
                                 <FiShoppingCart size={20} />
                                 {cartItemCount > 0 && (
                                     <Badge
                                         bg="danger"
                                         className="position-absolute top-0 start-100 translate-middle rounded-pill"
-                                        style={{ fontSize: "0.7rem" }}
+                                        style={{ fontSize: '0.7rem' }}
                                     >
                                         {cartItemCount}
                                     </Badge>
@@ -87,12 +68,8 @@ const Navbar = ({ isAuthenticated: propIsAuthenticated, onLogout }) => {
                         </>
                     ) : (
                         <>
-                            <Nav.Link as={Link} to="/login">
-                                Login
-                            </Nav.Link>
-                            <Nav.Link as={Link} to="/register">
-                                Register
-                            </Nav.Link>
+                            <Nav.Link as={Link} to="/login">Login</Nav.Link>
+                            <Nav.Link as={Link} to="/register">Register</Nav.Link>
                         </>
                     )}
                 </Nav>
@@ -101,4 +78,4 @@ const Navbar = ({ isAuthenticated: propIsAuthenticated, onLogout }) => {
     );
 };
 
-export default Navbar;
+export default Navbar; 

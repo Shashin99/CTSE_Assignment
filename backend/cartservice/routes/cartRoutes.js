@@ -4,14 +4,15 @@ import {
     addToCart,
     updateCartItem,
     removeFromCart,
-    clearCart
+    clearCart,
+    checkout
 } from '../controllers/cartController.js';
-import { auth } from '../middleware/auth.js';
+import verifyToken from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Apply auth middleware to all routes
-router.use(auth);
+router.use(verifyToken);
 
 // Cart routes
 router.get('/', getCart);
@@ -19,5 +20,6 @@ router.post('/', addToCart);
 router.put('/:productId', updateCartItem);
 router.delete('/:productId', removeFromCart);
 router.delete('/', clearCart);
+router.post('/checkout', checkout);
 
 export default router; 

@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { authApi } from '../utils/api';
 import {
     Form,
     Button,
@@ -14,9 +14,9 @@ import Swal from "sweetalert2";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const ForgotPassword = () => {
-    const [email, setEmail] = useState("");
-    const [message, setMessage] = useState("");
-    const [error, setError] = useState("");
+    const [email, setEmail] = useState('');
+    const [message, setMessage] = useState('');
+    const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
 
@@ -37,19 +37,19 @@ const ForgotPassword = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+        
         // Clear previous messages
-        setMessage("");
-        setError("");
+        setMessage('');
+        setError('');
 
         // Validate email
         if (!email.trim()) {
-            setError("Email is required");
+            setError('Email is required');
             return;
         }
 
         if (!validateEmail(email)) {
-            setError("Please enter a valid email address");
+            setError('Please enter a valid email address');
             return;
         }
 
@@ -60,12 +60,9 @@ const ForgotPassword = () => {
 
         setIsSubmitting(true);
         try {
-            const response = await axios.post(
-                "http://localhost:5000/api/users/forgot-password",
-                { email }
-            );
+            const response = await authApi.post('/api/auth/forgot-password', { email });
             setMessage(response.data.message);
-
+            
             await Swal.fire({
                 title: "Success!",
                 text: "Password reset link has been sent to your email",
@@ -78,14 +75,14 @@ const ForgotPassword = () => {
 
             // Redirect to login page after success
             setTimeout(() => {
-                navigate("/login");
+                navigate('/login');
             }, 2000);
         } catch (err) {
-            setError(err.response?.data?.message || "An error occurred");
-
+            setError(err.response?.data?.message || 'An error occurred');
+            
             Swal.fire({
                 title: "Error",
-                text: err.response?.data?.message || "An error occurred",
+                text: err.response?.data?.message || 'An error occurred',
                 icon: "error",
                 background: colors.light,
                 confirmButtonColor: colors.primary,
@@ -111,9 +108,7 @@ const ForgotPassword = () => {
                         borderBottom: `3px solid ${colors.secondary}`,
                     }}
                 >
-                    <h4 className="mb-0 text-white text-center">
-                        FORGOT PASSWORD
-                    </h4>
+                    <h4 className="mb-0 text-white text-center">FORGOT PASSWORD</h4>
                 </Card.Header>
 
                 <Card.Body className="p-4">
@@ -137,9 +132,7 @@ const ForgotPassword = () => {
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="Enter your registered email"
                                     style={{
-                                        borderColor: error
-                                            ? colors.danger
-                                            : colors.border,
+                                        borderColor: error ? colors.danger : colors.border,
                                     }}
                                     disabled={isSubmitting}
                                 />
@@ -199,4 +192,4 @@ const ForgotPassword = () => {
     );
 };
 
-export default ForgotPassword;
+export default ForgotPassword; 

@@ -1,27 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import {
-    Card,
-    Container,
-    Button,
-    Table,
-    Form,
-    Spinner,
-    Badge,
-    Tooltip,
-    OverlayTrigger,
-} from "react-bootstrap";
-import {
-    FiTrash2,
-    FiShoppingCart,
-    FiArrowLeft,
-    FiPlus,
-    FiMinus,
-    FiInfo,
-} from "react-icons/fi";
-import Swal from "sweetalert2";
-import "bootstrap/dist/css/bootstrap.min.css";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { cartApi } from '../utils/api';
+import { Card, Container, Button, Table, Form, Spinner, Badge, Tooltip, OverlayTrigger } from 'react-bootstrap';
+import { FiTrash2, FiShoppingCart, FiArrowLeft, FiPlus, FiMinus, FiInfo } from 'react-icons/fi';
+import Swal from 'sweetalert2';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Cart = () => {
     const colors = {
@@ -41,63 +24,40 @@ const Cart = () => {
     const [isUpdating, setIsUpdating] = useState(false);
     const [selectedItems, setSelectedItems] = useState([]);
 
-    // Initialize axios defaults
     useEffect(() => {
-        const token = localStorage.getItem("authToken");
-        const userData = localStorage.getItem("userData");
+        const token = localStorage.getItem('authToken');
+        const userData = localStorage.getItem('userData');
 
         if (!token || !userData) {
-            navigate("/login");
+            navigate('/login');
             return;
         }
-
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        axios.defaults.headers.common["Content-Type"] = "application/json";
-
+        
         fetchCart();
     }, [navigate]);
 
     const fetchCart = async () => {
         try {
-            const token = localStorage.getItem("authToken");
-            const userData = JSON.parse(localStorage.getItem("userData"));
-
-            if (!token || !userData) {
-                throw new Error("Authentication required");
-            }
-
-            const config = {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                    "X-User-ID": userData._id,
-                },
-            };
-
-            const response = await axios.get(
-                "http://localhost:5000/api/cart",
-                config
-            );
+            const response = await cartApi.get('/api/cart');
             setCart(response.data);
             setLoading(false);
         } catch (err) {
-            console.error("Error fetching cart:", err);
-
+            console.error('Error fetching cart:', err);
+            
             if (err.response?.status === 401) {
-                localStorage.removeItem("authToken");
-                localStorage.removeItem("userData");
-                delete axios.defaults.headers.common["Authorization"];
-
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userData');
+                
                 Swal.fire({
-                    title: "Session Expired",
-                    text: "Please login again",
-                    icon: "warning",
+                    title: 'Session Expired',
+                    text: 'Please login again',
+                    icon: 'warning',
                     confirmButtonColor: colors.primary,
                 }).then(() => {
-                    navigate("/login");
+                    navigate('/login');
                 });
             } else {
-                setError("Error fetching cart");
+                setError('Error fetching cart');
                 setLoading(false);
             }
         }
@@ -105,53 +65,32 @@ const Cart = () => {
 
     const handleQuantityChange = async (productId, quantity) => {
         if (isUpdating) return;
-
+        
         setIsUpdating(true);
         try {
-            const token = localStorage.getItem("authToken");
-            const userData = JSON.parse(localStorage.getItem("userData"));
-
-            if (!token || !userData) {
-                throw new Error("Authentication required");
-            }
-
-            const config = {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                    "X-User-ID": userData._id,
-                },
-            };
-
-            await axios.put(
-                `http://localhost:5000/api/cart/${productId}`,
-                {
-                    quantity: parseInt(quantity),
-                    userId: userData._id,
-                },
-                config
-            );
+            await cartApi.put(`/api/cart/${productId}`, { 
+                quantity: parseInt(quantity)
+            });
             fetchCart();
         } catch (err) {
-            console.error("Error updating quantity:", err);
+            console.error('Error updating quantity:', err);
             if (err.response?.status === 401) {
-                localStorage.removeItem("authToken");
-                localStorage.removeItem("userData");
-                delete axios.defaults.headers.common["Authorization"];
-
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userData');
+                
                 Swal.fire({
-                    title: "Session Expired",
-                    text: "Please login again",
-                    icon: "warning",
+                    title: 'Session Expired',
+                    text: 'Please login again',
+                    icon: 'warning',
                     confirmButtonColor: colors.primary,
                 }).then(() => {
-                    navigate("/login");
+                    navigate('/login');
                 });
             } else {
                 Swal.fire({
-                    title: "Error!",
-                    text: "Failed to update quantity",
-                    icon: "error",
+                    title: 'Error!',
+                    text: 'Failed to update quantity',
+                    icon: 'error',
                     background: colors.light,
                     confirmButtonColor: colors.primary,
                 });
@@ -164,41 +103,23 @@ const Cart = () => {
     const handleRemoveItem = async (productId) => {
         try {
             const result = await Swal.fire({
-                title: "Remove Item",
+                title: 'Remove Item',
                 text: "Are you sure you want to remove this item from your cart?",
-                icon: "warning",
+                icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: colors.danger,
                 cancelButtonColor: colors.secondary,
-                confirmButtonText: "Yes, remove it!",
+                confirmButtonText: 'Yes, remove it!',
                 background: colors.light,
             });
 
             if (result.isConfirmed) {
-                const token = localStorage.getItem("authToken");
-                const userData = JSON.parse(localStorage.getItem("userData"));
-
-                if (!token || !userData) {
-                    throw new Error("Authentication required");
-                }
-
-                const config = {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                        "X-User-ID": userData._id,
-                    },
-                };
-
-                await axios.delete(
-                    `http://localhost:5000/api/cart/${productId}`,
-                    config
-                );
+                await cartApi.delete(`/api/cart/${productId}`);
                 fetchCart();
                 Swal.fire({
-                    title: "Removed!",
-                    text: "Item has been removed from cart.",
-                    icon: "success",
+                    title: 'Removed!',
+                    text: 'Item has been removed from cart.',
+                    icon: 'success',
                     background: colors.light,
                     confirmButtonColor: colors.primary,
                     timer: 1500,
@@ -206,25 +127,24 @@ const Cart = () => {
                 });
             }
         } catch (err) {
-            console.error("Error removing item:", err);
+            console.error('Error removing item:', err);
             if (err.response?.status === 401) {
-                localStorage.removeItem("authToken");
-                localStorage.removeItem("userData");
-                delete axios.defaults.headers.common["Authorization"];
-
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userData');
+                
                 Swal.fire({
-                    title: "Session Expired",
-                    text: "Please login again",
-                    icon: "warning",
+                    title: 'Session Expired',
+                    text: 'Please login again',
+                    icon: 'warning',
                     confirmButtonColor: colors.primary,
                 }).then(() => {
-                    navigate("/login");
+                    navigate('/login');
                 });
             } else {
                 Swal.fire({
-                    title: "Error!",
-                    text: "Failed to remove item",
-                    icon: "error",
+                    title: 'Error!',
+                    text: 'Failed to remove item',
+                    icon: 'error',
                     background: colors.light,
                     confirmButtonColor: colors.primary,
                 });
@@ -234,22 +154,22 @@ const Cart = () => {
 
     const calculateTotal = () => {
         return cart.items.reduce((total, item) => {
-            return total + item.product.price * item.quantity;
+            return total + (item.product.price * item.quantity);
         }, 0);
     };
 
     const calculateSelectedTotal = () => {
         return cart.items
-            .filter((item) => selectedItems.includes(item.product._id))
+            .filter(item => selectedItems.includes(item.product._id))
             .reduce((total, item) => {
-                return total + item.product.price * item.quantity;
+                return total + (item.product.price * item.quantity);
             }, 0);
     };
 
     const handleSelectItem = (productId) => {
-        setSelectedItems((prev) =>
+        setSelectedItems(prev => 
             prev.includes(productId)
-                ? prev.filter((id) => id !== productId)
+                ? prev.filter(id => id !== productId)
                 : [...prev, productId]
         );
     };
@@ -258,16 +178,69 @@ const Cart = () => {
         if (selectedItems.length === cart.items.length) {
             setSelectedItems([]);
         } else {
-            setSelectedItems(cart.items.map((item) => item.product._id));
+            setSelectedItems(cart.items.map(item => item.product._id));
+        }
+    };
+
+    const handleCheckout = async () => {
+        try {
+            const result = await Swal.fire({
+                title: 'Confirm Checkout',
+                text: "Are you sure you want to proceed with the checkout?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: colors.primary,
+                cancelButtonColor: colors.secondary,
+                confirmButtonText: 'Yes, proceed!',
+                background: colors.light,
+            });
+
+            if (result.isConfirmed) {
+                const response = await cartApi.post('/api/cart/checkout');
+                
+                // Show success message
+                await Swal.fire({
+                    title: 'Success!',
+                    text: response.data.message,
+                    icon: 'success',
+                    background: colors.light,
+                    confirmButtonColor: colors.primary,
+                });
+
+                // Refresh cart data
+                fetchCart();
+                // Clear selected items
+                setSelectedItems([]);
+            }
+        } catch (err) {
+            console.error('Checkout error:', err);
+            if (err.response?.status === 401) {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userData');
+                
+                Swal.fire({
+                    title: 'Session Expired',
+                    text: 'Please login again',
+                    icon: 'warning',
+                    confirmButtonColor: colors.primary,
+                }).then(() => {
+                    navigate('/login');
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Failed to process checkout. Please try again.',
+                    icon: 'error',
+                    background: colors.light,
+                    confirmButtonColor: colors.primary,
+                });
+            }
         }
     };
 
     if (loading) {
         return (
-            <Container
-                className="d-flex justify-content-center align-items-center"
-                style={{ minHeight: "80vh" }}
-            >
+            <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
                 <Spinner animation="border" variant="primary" />
             </Container>
         );
@@ -275,14 +248,8 @@ const Cart = () => {
 
     if (error) {
         return (
-            <Container
-                className="d-flex justify-content-center align-items-center"
-                style={{ minHeight: "80vh" }}
-            >
-                <Card
-                    className="p-4"
-                    style={{ maxWidth: "500px", width: "100%" }}
-                >
+            <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
+                <Card className="p-4" style={{ maxWidth: '500px', width: '100%' }}>
                     <Card.Body className="text-center">
                         <h4 className="text-danger">{error}</h4>
                     </Card.Body>
@@ -302,18 +269,14 @@ const Cart = () => {
                                 Shopping Cart
                             </h2>
                             <Badge bg="secondary" className="mt-2">
-                                {cart.items.length}{" "}
-                                {cart.items.length === 1 ? "item" : "items"}
+                                {cart.items.length} {cart.items.length === 1 ? 'item' : 'items'}
                             </Badge>
                         </div>
                         <Button
                             variant="outline-primary"
-                            onClick={() => navigate("/products")}
+                            onClick={() => navigate('/products')}
                             className="d-flex align-items-center"
-                            style={{
-                                borderColor: colors.primary,
-                                color: colors.primary,
-                            }}
+                            style={{ borderColor: colors.primary, color: colors.primary }}
                         >
                             <FiArrowLeft className="me-1" />
                             Continue Shopping
@@ -323,19 +286,13 @@ const Cart = () => {
                     {cart.items.length === 0 ? (
                         <div className="text-center py-5">
                             <div className="mb-4">
-                                <FiShoppingCart
-                                    size={64}
-                                    color={colors.secondary}
-                                />
+                                <FiShoppingCart size={64} color={colors.secondary} />
                             </div>
                             <h4>Your cart is empty</h4>
-                            <p className="text-muted">
-                                Looks like you haven't added any items to your
-                                cart yet.
-                            </p>
+                            <p className="text-muted">Looks like you haven't added any items to your cart yet.</p>
                             <Button
                                 variant="primary"
-                                onClick={() => navigate("/products")}
+                                onClick={() => navigate('/products')}
                                 className="mt-3"
                                 style={{ backgroundColor: colors.primary }}
                             >
@@ -348,17 +305,14 @@ const Cart = () => {
                                 <Form.Check
                                     type="checkbox"
                                     label="Select All"
-                                    checked={
-                                        selectedItems.length ===
-                                        cart.items.length
-                                    }
+                                    checked={selectedItems.length === cart.items.length}
                                     onChange={handleSelectAll}
                                 />
                             </div>
                             <Table responsive hover className="align-middle">
                                 <thead>
                                     <tr>
-                                        <th style={{ width: "50px" }}></th>
+                                        <th style={{ width: '50px' }}></th>
                                         <th>Product</th>
                                         <th>Price</th>
                                         <th>Quantity</th>
@@ -368,91 +322,45 @@ const Cart = () => {
                                 </thead>
                                 <tbody>
                                     {cart.items.map((item) => (
-                                        <tr
-                                            key={item.product._id}
-                                            className={
-                                                selectedItems.includes(
-                                                    item.product._id
-                                                )
-                                                    ? "table-active"
-                                                    : ""
-                                            }
-                                        >
+                                        <tr key={item.product._id} className={selectedItems.includes(item.product._id) ? 'table-active' : ''}>
                                             <td>
                                                 <Form.Check
                                                     type="checkbox"
-                                                    checked={selectedItems.includes(
-                                                        item.product._id
-                                                    )}
-                                                    onChange={() =>
-                                                        handleSelectItem(
-                                                            item.product._id
-                                                        )
-                                                    }
+                                                    checked={selectedItems.includes(item.product._id)}
+                                                    onChange={() => handleSelectItem(item.product._id)}
                                                 />
                                             </td>
                                             <td>
                                                 <div className="d-flex align-items-center">
                                                     <img
-                                                        src={
-                                                            item.product
-                                                                .image ||
-                                                            "https://via.placeholder.com/50"
-                                                        }
+                                                        src={item.product.image || 'https://via.placeholder.com/50'}
                                                         alt={item.product.name}
-                                                        style={{
-                                                            width: "60px",
-                                                            height: "60px",
-                                                            objectFit: "cover",
-                                                            marginRight: "15px",
-                                                            borderRadius: "8px",
-                                                            boxShadow:
-                                                                "0 2px 4px rgba(0,0,0,0.1)",
+                                                        style={{ 
+                                                            width: '60px', 
+                                                            height: '60px', 
+                                                            objectFit: 'cover', 
+                                                            marginRight: '15px',
+                                                            borderRadius: '8px',
+                                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                                                         }}
                                                     />
                                                     <div>
-                                                        <h6 className="mb-0">
-                                                            {item.product.name}
-                                                        </h6>
-                                                        <small className="text-muted">
-                                                            SKU:{" "}
-                                                            {item.product._id.slice(
-                                                                -6
-                                                            )}
-                                                        </small>
+                                                        <h6 className="mb-0">{item.product.name}</h6>
+                                                        <small className="text-muted">SKU: {item.product._id.slice(-6)}</small>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td>
-                                                <span className="fw-bold">
-                                                    $
-                                                    {item.product.price.toFixed(
-                                                        2
-                                                    )}
-                                                </span>
+                                                <span className="fw-bold">${item.product.price.toFixed(2)}</span>
                                             </td>
                                             <td>
                                                 <div className="d-flex align-items-center">
                                                     <Button
                                                         variant="outline-secondary"
                                                         size="sm"
-                                                        onClick={() =>
-                                                            handleQuantityChange(
-                                                                item.product
-                                                                    ._id,
-                                                                Math.max(
-                                                                    1,
-                                                                    item.quantity -
-                                                                        1
-                                                                )
-                                                            )
-                                                        }
+                                                        onClick={() => handleQuantityChange(item.product._id, Math.max(1, item.quantity - 1))}
                                                         disabled={isUpdating}
-                                                        style={{
-                                                            borderColor:
-                                                                colors.secondary,
-                                                            color: colors.secondary,
-                                                        }}
+                                                        style={{ borderColor: colors.secondary, color: colors.secondary }}
                                                     >
                                                         <FiMinus />
                                                     </Button>
@@ -460,78 +368,40 @@ const Cart = () => {
                                                         type="number"
                                                         min="1"
                                                         value={item.quantity}
-                                                        onChange={(e) =>
-                                                            handleQuantityChange(
-                                                                item.product
-                                                                    ._id,
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                        style={{
-                                                            width: "60px",
-                                                            margin: "0 8px",
-                                                            textAlign: "center",
+                                                        onChange={(e) => handleQuantityChange(item.product._id, e.target.value)}
+                                                        style={{ 
+                                                            width: '60px', 
+                                                            margin: '0 8px',
+                                                            textAlign: 'center'
                                                         }}
                                                         disabled={isUpdating}
                                                     />
                                                     <Button
                                                         variant="outline-secondary"
                                                         size="sm"
-                                                        onClick={() =>
-                                                            handleQuantityChange(
-                                                                item.product
-                                                                    ._id,
-                                                                item.quantity +
-                                                                    1
-                                                            )
-                                                        }
+                                                        onClick={() => handleQuantityChange(item.product._id, item.quantity + 1)}
                                                         disabled={isUpdating}
-                                                        style={{
-                                                            borderColor:
-                                                                colors.secondary,
-                                                            color: colors.secondary,
-                                                        }}
+                                                        style={{ borderColor: colors.secondary, color: colors.secondary }}
                                                     >
                                                         <FiPlus />
                                                     </Button>
                                                 </div>
                                             </td>
                                             <td>
-                                                <span
-                                                    className="fw-bold"
-                                                    style={{
-                                                        color: colors.primary,
-                                                    }}
-                                                >
-                                                    $
-                                                    {(
-                                                        item.product.price *
-                                                        item.quantity
-                                                    ).toFixed(2)}
+                                                <span className="fw-bold" style={{ color: colors.primary }}>
+                                                    ${(item.product.price * item.quantity).toFixed(2)}
                                                 </span>
                                             </td>
                                             <td>
                                                 <OverlayTrigger
                                                     placement="top"
-                                                    overlay={
-                                                        <Tooltip>
-                                                            Remove Item
-                                                        </Tooltip>
-                                                    }
+                                                    overlay={<Tooltip>Remove Item</Tooltip>}
                                                 >
                                                     <Button
                                                         variant="outline-danger"
                                                         size="sm"
-                                                        onClick={() =>
-                                                            handleRemoveItem(
-                                                                item.product._id
-                                                            )
-                                                        }
-                                                        style={{
-                                                            borderColor:
-                                                                colors.danger,
-                                                            color: colors.danger,
-                                                        }}
+                                                        onClick={() => handleRemoveItem(item.product._id)}
+                                                        style={{ borderColor: colors.danger, color: colors.danger }}
                                                     >
                                                         <FiTrash2 />
                                                     </Button>
@@ -542,52 +412,30 @@ const Cart = () => {
                                 </tbody>
                             </Table>
 
-                            <div
-                                className="d-flex justify-content-between align-items-center mt-4 p-3"
-                                style={{
-                                    backgroundColor: colors.light,
-                                    borderRadius: "8px",
-                                }}
-                            >
+                            <div className="d-flex justify-content-between align-items-center mt-4 p-3" style={{ backgroundColor: colors.light, borderRadius: '8px' }}>
                                 <div>
                                     <h5 className="mb-0">
-                                        Selected Items:{" "}
-                                        <Badge bg="primary">
-                                            {selectedItems.length}
-                                        </Badge>
+                                        Selected Items: <Badge bg="primary">{selectedItems.length}</Badge>
                                     </h5>
-                                    <small className="text-muted">
-                                        Select items to proceed with checkout
-                                    </small>
+                                    <small className="text-muted">Select items to proceed with checkout</small>
                                 </div>
                                 <div className="text-end">
                                     <h4 className="mb-0">
-                                        Total:{" "}
-                                        <span
-                                            style={{ color: colors.secondary }}
-                                        >
-                                            $
-                                            {calculateSelectedTotal().toFixed(
-                                                2
-                                            )}
-                                        </span>
+                                        Total: <span style={{ color: colors.secondary }}>${calculateSelectedTotal().toFixed(2)}</span>
                                     </h4>
-                                    <small className="text-muted">
-                                        Including all selected items
-                                    </small>
+                                    <small className="text-muted">Including all selected items</small>
                                 </div>
                                 <Button
                                     variant="primary"
                                     size="lg"
                                     disabled={selectedItems.length === 0}
-                                    style={{
+                                    onClick={handleCheckout}
+                                    style={{ 
                                         backgroundColor: colors.primary,
-                                        minWidth: "200px",
+                                        minWidth: '200px'
                                     }}
                                 >
-                                    {selectedItems.length === 0
-                                        ? "Select Items"
-                                        : "Proceed to Checkout"}
+                                    {selectedItems.length === 0 ? 'Select Items' : 'Proceed to Checkout'}
                                 </Button>
                             </div>
                         </>
@@ -598,4 +446,4 @@ const Cart = () => {
     );
 };
 
-export default Cart;
+export default Cart; 
