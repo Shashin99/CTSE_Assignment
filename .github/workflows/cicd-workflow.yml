@@ -38,7 +38,7 @@ jobs:
               run: |
                   docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./backend/userservice
                   docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
-                  echo "::set-output name=image::$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG"
+                  echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
             - name: Build and Push Cart Service
               id: cart
@@ -49,7 +49,7 @@ jobs:
               run: |
                   docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./backend/cartservice
                   docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
-                  echo "::set-output name=image::$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG"
+                  echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
             - name: Build and Push Product Service
               id: product
@@ -60,7 +60,7 @@ jobs:
               run: |
                   docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./backend/productservice
                   docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
-                  echo "::set-output name=image::$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG"
+                  echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
             - name: Build and Push Auth Service
               id: auth
@@ -71,7 +71,7 @@ jobs:
               run: |
                   docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./backend/authservice
                   docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
-                  echo "::set-output name=image::$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG"
+                  echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
             - name: Build and Push API Gateway
               id: gateway
@@ -82,7 +82,7 @@ jobs:
               run: |
                   docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./backend/apigateway
                   docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
-                  echo "::set-output name=image::$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG"
+                  echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
     deploy:
         name: Deploy to Amazon ECS
@@ -106,7 +106,7 @@ jobs:
               uses: aws-actions/amazon-ecs-render-task-definition@v1
               with:
                   task-definition: ./backend/taskdefinitions/ctse-user-service-app-task.json
-                  container-name: ctse-userservice
+                  container-name: ctse-app # Changed to match JSON
                   image: ${{ steps.user.outputs.image }}
 
             - name: Deploy User Service to ECS
@@ -122,7 +122,7 @@ jobs:
               uses: aws-actions/amazon-ecs-render-task-definition@v1
               with:
                   task-definition: ./backend/taskdefinitions/ctse-cart-service-app-task.json
-                  container-name: ctse-cartservice
+                  container-name: ctse-app  # Changed to match JSON
                   image: ${{ steps.cart.outputs.image }}
 
             - name: Deploy Cart Service to ECS
@@ -138,7 +138,7 @@ jobs:
               uses: aws-actions/amazon-ecs-render-task-definition@v1
               with:
                   task-definition: ./backend/taskdefinitions/ctse-product-service-app-task.json
-                  container-name: ctse-productservice
+                  container-name: ctse-app  # Changed to match JSON
                   image: ${{ steps.product.outputs.image }}
 
             - name: Deploy Product Service to ECS
@@ -154,7 +154,7 @@ jobs:
               uses: aws-actions/amazon-ecs-render-task-definition@v1
               with:
                   task-definition: ./backend/taskdefinitions/ctse-auth-service-app-task.json
-                  container-name: ctse-authservice
+                  container-name: ctse-app  # Changed to match JSON
                   image: ${{ steps.auth.outputs.image }}
 
             - name: Deploy Auth Service to ECS
@@ -163,4 +163,20 @@ jobs:
                   service: ctse-auth-service
                   cluster: ctseCluster
                   task-definition: ${{ steps.auth-task-def.outputs.task-definition }}
+                  wait-for-service-stability: true
+
+            - name: Update ECS Task Definition - API Gateway
+              id: gateway-task-def
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: ./backend/taskdefinitions/ctse-api-gateway-task.json
+                  container-name: ctse-app  # Changed to match JSON
+                  image: ${{ steps.gateway.outputs.image }}
+
+            - name: Deploy API Gateway to ECS
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  service: ctse-api-gateway
+                  cluster: ctseCluster
+                  task-definition: ${{ steps.gateway-task-def.outputs.task-definition }}
                   wait-for-service-stability: true
