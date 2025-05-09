@@ -6,12 +6,12 @@ import {
     removeFromCart,
     clearCart
 } from '../controllers/cartController.js';
-import { auth } from '../../userservice/middleware/auth.js';
+import verifyToken from '../../userservice/middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Apply auth middleware to all routes
-router.use(auth);
+router.use(verifyToken);
 
 // Cart routes
 router.get('/', getCart);

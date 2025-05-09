@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import cartRoutes from './routes/cartRoutes.js';
 import config from './config/config.js';
+import './models/index.js';  // Import models to ensure they are registered
 
 // Load environment variables
 dotenv.config();
