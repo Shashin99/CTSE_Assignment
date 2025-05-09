@@ -66,75 +66,63 @@ export const addToCart = async (req, res) => {
             return res.status(401).json({ message: 'User ID not found' });
         }
 
-        // Verify product exists in product service
-        try {
-            const productResponse = await axios.get(`${config.productServiceUrl}/api/products/${productId}`);
-            const productData = productResponse.data;
-
-            // Create or update product in cart service
-            let product = await Product.findById(productId);
-            if (!product) {
-                product = new Product({
-                    _id: productData._id,
-                    name: productData.name,
-                    description: productData.description,
-                    price: productData.price,
-                    category: productData.category,
-                    stock: productData.stock,
-                    image: productData.image
-                });
-                await product.save();
-            }
-
-            let cart = await Cart.findOne({ user: req.userId });
-
-            if (!cart) {
-                cart = new Cart({
-                    user: req.userId,
-                    items: []
-                });
-            }
-
-            const existingItem = cart.items.find(item => item.product.toString() === productId);
-
-            if (existingItem) {
-                existingItem.quantity += quantity;
-            } else {
-                cart.items.push({ product: productId, quantity });
-            }
-
-            await cart.save();
-            await cart.populate({
-                path: 'items.product',
-                select: 'name price image _id'
-            });
-            
-            res.status(200).json({
-                _id: cart._id,
-                user: cart.user,
-                items: cart.items.map(item => ({
-                    _id: item._id,
-                    product: item.product ? {
-                        _id: item.product._id,
-                        name: item.product.name,
-                        price: item.product.price,
-                        image: item.product.image
-                    } : null,
-                    quantity: item.quantity
-                })),
-                createdAt: cart.createdAt,
-                updatedAt: cart.updatedAt
-            });
-        } catch (error) {
-            console.error('Error fetching product:', error);
-            if (error.response && error.response.status === 404) {
-                return res.status(404).json({ message: 'Product not found' });
-            }
-            throw error;
+        // Verify product exists using Product model
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
         }
+
+        // Find or create cart
+        let cart = await Cart.findOne({ user: req.userId });
+        if (!cart) {
+            cart = new Cart({
+                user: req.userId,
+                items: []
+            });
+        }
+
+        // Update cart items
+        const existingItem = cart.items.find(item => 
+            item.product.toString() === productId
+        );
+
+        if (existingItem) {
+            existingItem.quantity += quantity;
+        } else {
+            cart.items.push({ product: productId, quantity });
+        }
+
+        await cart.save();
+        
+        // Populate product details
+        await cart.populate({
+            path: 'items.product',
+            select: 'name price image _id'
+        });
+
+        // Format response
+        res.status(200).json({
+            _id: cart._id,
+            user: cart.user,
+            items: cart.items.map(item => ({
+                _id: item._id,
+                product: {
+                    _id: item.product._id,
+                    name: item.product.name,
+                    price: item.product.price,
+                    image: item.product.image
+                },
+                quantity: item.quantity
+            })),
+            createdAt: cart.createdAt,
+            updatedAt: cart.updatedAt
+        });
+
     } catch (error) {
         console.error('Error in addToCart:', error);
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ 
+            message: error.message || 'Internal server error' 
+        });
     }
 };
 
