@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import { productApi, cartApi } from '../utils/api';
 import { Card, Container, Button, Spinner, Row, Col } from 'react-bootstrap';
 import { FiPlus, FiEdit2, FiTrash2, FiShoppingCart } from 'react-icons/fi';
 import Swal from 'sweetalert2';
@@ -30,7 +30,7 @@ const ProductList = () => {
 
     const fetchProducts = async () => {
         try {
-            const response = await axios.get('http://localhost:5002/api/products');
+            const response = await productApi.get('/api/products');
             setProducts(response.data);
             setLoading(false);
         } catch (err) {
@@ -59,27 +59,7 @@ const ProductList = () => {
         }
 
         try {
-            const token = localStorage.getItem('authToken');
-            console.log('Token from localStorage:', token ? 'Token exists' : 'No token');
-            
-            if (!token) {
-                throw new Error('No authentication token found');
-            }
-
-            const config = {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            };
-            console.log('Request config:', config);
-
-            const response = await axios.post(
-                'http://localhost:5002/api/cart',
-                { productId, quantity: 1 },
-                config
-            );
-            console.log('Add to cart response:', response.data);
+            await cartApi.post('/api/cart', { productId, quantity: 1 });
 
             Swal.fire({
                 title: 'Success!',
@@ -91,11 +71,7 @@ const ProductList = () => {
                 showConfirmButton: false,
             });
         } catch (err) {
-            console.error('Add to cart error:', err);
-            console.error('Error response:', err.response);
-            
             if (err.response?.status === 401) {
-                // Token expired or invalid
                 localStorage.removeItem('authToken');
                 setIsAuthenticated(false);
                 Swal.fire({
@@ -131,7 +107,7 @@ const ProductList = () => {
             });
 
             if (result.isConfirmed) {
-                await axios.delete(`http://localhost:5002/api/products/${id}`);
+                await productApi.delete(`/api/products/${id}`);
                 setProducts(products.filter(product => product._id !== id));
                 Swal.fire({
                     title: 'Deleted!',
@@ -144,13 +120,26 @@ const ProductList = () => {
                 });
             }
         } catch (err) {
-            Swal.fire({
-                title: 'Error!',
-                text: 'Failed to delete product',
-                icon: 'error',
-                background: colors.light,
-                confirmButtonColor: colors.primary,
-            });
+            if (err.response?.status === 401) {
+                localStorage.removeItem('authToken');
+                setIsAuthenticated(false);
+                Swal.fire({
+                    title: 'Session Expired',
+                    text: 'Please login again',
+                    icon: 'warning',
+                    confirmButtonColor: colors.primary,
+                }).then(() => {
+                    window.location.href = '/login';
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Failed to delete product',
+                    icon: 'error',
+                    background: colors.light,
+                    confirmButtonColor: colors.primary,
+                });
+            }
         }
     };
 

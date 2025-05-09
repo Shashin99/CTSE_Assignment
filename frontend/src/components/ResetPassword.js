@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
+import { authApi } from '../utils/api';
 import {
     Form,
     Button,
@@ -100,7 +100,7 @@ const ResetPassword = () => {
 
         setIsSubmitting(true);
         try {
-            const response = await axios.post('http://localhost:5001/api/auth/reset-password', {
+            const response = await authApi.post('/api/auth/reset-password', {
                 token,
                 newPassword: formData.newPassword
             });

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { userApi } from "../../utils/api";
 import { Form, Button, Card, Container, Spinner, Row, Col } from "react-bootstrap";
 import { FiUser, FiMail, FiPhone, FiCreditCard, FiMapPin } from "react-icons/fi";
 import Swal from "sweetalert2";
@@ -29,17 +29,13 @@ const EditProfile = () => {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const token = localStorage.getItem("authToken");
                 const userData = JSON.parse(localStorage.getItem("userData"));
                 
                 if (!userData || !userData._id) {
                     throw new Error("No user data found");
                 }
 
-                const response = await axios.get(
-                    `http://localhost:5002/api/users/${userData._id}`,
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
+                const response = await userApi.get(`/api/users/${userData._id}`);
                 setFormData({
                     name: response.data.name || "",
                     email: response.data.email || "",
@@ -49,13 +45,25 @@ const EditProfile = () => {
                 });
                 setLoading(false);
             } catch (error) {
-                Swal.fire({
-                    title: "Error",
-                    text: "Failed to fetch user data",
-                    icon: "error",
-                    confirmButtonColor: colors.primary,
-                });
-                navigate("/login");
+                if (error.response?.status === 401) {
+                    localStorage.removeItem("authToken");
+                    Swal.fire({
+                        title: "Session Expired",
+                        text: "Please login again",
+                        icon: "warning",
+                        confirmButtonColor: colors.primary,
+                    }).then(() => {
+                        navigate("/login");
+                    });
+                } else {
+                    Swal.fire({
+                        title: "Error",
+                        text: "Failed to fetch user data",
+                        icon: "error",
+                        confirmButtonColor: colors.primary,
+                    });
+                    navigate("/login");
+                }
             }
         };
         fetchUser();
@@ -115,18 +123,13 @@ const EditProfile = () => {
         }
 
         try {
-            const token = localStorage.getItem("authToken");
             const userData = JSON.parse(localStorage.getItem("userData"));
             
             if (!userData || !userData._id) {
                 throw new Error("No user data found");
             }
 
-            await axios.put(
-                `http://localhost:5002/api/users/${userData._id}`,
-                formData,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await userApi.put(`/api/users/${userData._id}`, formData);
 
             // Update the user data in localStorage
             const updatedUserData = { ...userData, ...formData };
@@ -143,12 +146,24 @@ const EditProfile = () => {
 
             navigate("/userprofile");
         } catch (error) {
-            Swal.fire({
-                title: "Error",
-                text: error.response?.data?.message || "Failed to update profile",
-                icon: "error",
-                confirmButtonColor: colors.primary,
-            });
+            if (error.response?.status === 401) {
+                localStorage.removeItem("authToken");
+                Swal.fire({
+                    title: "Session Expired",
+                    text: "Please login again",
+                    icon: "warning",
+                    confirmButtonColor: colors.primary,
+                }).then(() => {
+                    navigate("/login");
+                });
+            } else {
+                Swal.fire({
+                    title: "Error",
+                    text: error.response?.data?.message || "Failed to update profile",
+                    icon: "error",
+                    confirmButtonColor: colors.primary,
+                });
+            }
         }
     };
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import { productApi } from '../utils/api';
 import { Form, Button, Card, Container, Spinner } from 'react-bootstrap';
 import { FiSave, FiX, FiPackage, FiDollarSign, FiGrid, FiLayers, FiImage } from 'react-icons/fi';
 import Swal from 'sweetalert2';
@@ -34,7 +34,7 @@ const ProductForm = () => {
         if (id) {
             const fetchProduct = async () => {
                 try {
-                    const response = await axios.get(`http://localhost:5002/api/products/${id}`);
+                    const response = await productApi.get(`/api/products/${id}`);
                     setProduct(response.data);
                 } catch (err) {
                     setError('Error fetching product');
@@ -57,7 +57,7 @@ const ProductForm = () => {
         setLoading(true);
         try {
             if (id) {
-                await axios.put(`http://localhost:5002/api/products/${id}`, product);
+                await productApi.put(`/api/products/${id}`, product);
                 await Swal.fire({
                     title: 'Success!',
                     text: 'Product updated successfully',
@@ -68,7 +68,7 @@ const ProductForm = () => {
                     showConfirmButton: false,
                 });
             } else {
-                await axios.post('http://localhost:5002/api/products', product);
+                await productApi.post('/api/products', product);
                 await Swal.fire({
                     title: 'Success!',
                     text: 'Product created successfully',
@@ -81,13 +81,27 @@ const ProductForm = () => {
             }
             navigate('/products');
         } catch (err) {
-            Swal.fire({
-                title: 'Error!',
-                text: 'Failed to save product',
-                icon: 'error',
-                background: colors.light,
-                confirmButtonColor: colors.primary,
-            });
+            if (err.response?.status === 401) {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userData');
+                
+                Swal.fire({
+                    title: 'Session Expired',
+                    text: 'Please login again',
+                    icon: 'warning',
+                    confirmButtonColor: colors.primary,
+                }).then(() => {
+                    navigate('/login');
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Failed to save product',
+                    icon: 'error',
+                    background: colors.light,
+                    confirmButtonColor: colors.primary,
+                });
+            }
             setLoading(false);
         }
     };

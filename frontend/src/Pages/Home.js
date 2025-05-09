@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { productApi, cartApi } from '../utils/api';
 import {
     Container,
     Row,
@@ -38,7 +38,7 @@ const Home = () => {
 
     const fetchProducts = async () => {
         try {
-            const response = await axios.get('http://localhost:5002/api/products');
+            const response = await productApi.get('/api/products');
             setProducts(response.data);
             // Set featured products (first 4 products)
             setFeaturedProducts(response.data.slice(0, 4));
@@ -71,20 +71,10 @@ const Home = () => {
                 return;
             }
 
-            const userData = JSON.parse(localStorage.getItem('userData'));
-            const config = {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                    'X-User-ID': userData._id
-                }
-            };
-
-            await axios.post('http://localhost:5002/api/cart', {
+            await cartApi.post('/api/cart', {
                 productId,
-                quantity: 1,
-                userId: userData._id
-            }, config);
+                quantity: 1
+            });
 
             Swal.fire({
                 title: 'Success!',
@@ -97,13 +87,27 @@ const Home = () => {
             });
         } catch (err) {
             console.error('Error adding to cart:', err);
-            Swal.fire({
-                title: 'Error!',
-                text: 'Failed to add product to cart',
-                icon: 'error',
-                background: colors.light,
-                confirmButtonColor: colors.primary,
-            });
+            if (err.response?.status === 401) {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userData');
+                
+                Swal.fire({
+                    title: 'Session Expired',
+                    text: 'Please login again',
+                    icon: 'warning',
+                    confirmButtonColor: colors.primary,
+                }).then(() => {
+                    navigate('/login');
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Failed to add product to cart',
+                    icon: 'error',
+                    background: colors.light,
+                    confirmButtonColor: colors.primary,
+                });
+            }
         }
     };
 

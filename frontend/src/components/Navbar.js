@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Navbar as BootstrapNavbar, Nav, Button, Badge } from 'react-bootstrap';
 import { FiShoppingCart, FiUser, FiLogOut } from 'react-icons/fi';
-import axios from 'axios';
+import { cartApi } from '../utils/api';
 
 const Navbar = ({ isAuthenticated: propIsAuthenticated, onLogout }) => {
     const [cartItemCount, setCartItemCount] = useState(0);
@@ -18,15 +18,7 @@ const Navbar = ({ isAuthenticated: propIsAuthenticated, onLogout }) => {
 
     const fetchCartItemCount = async () => {
         try {
-            const token = localStorage.getItem('authToken');
-            if (!token) {
-                setCartItemCount(0);
-                return;
-            }
-
-            const response = await axios.get('http://localhost:5002/api/cart', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await cartApi.get('/api/cart');
             const totalItems = response.data.items.reduce((sum, item) => sum + item.quantity, 0);
             setCartItemCount(totalItems);
         } catch (error) {

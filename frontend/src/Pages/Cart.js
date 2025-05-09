@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { cartApi } from '../utils/api';
 import { Card, Container, Button, Table, Form, Spinner, Badge, Tooltip, OverlayTrigger } from 'react-bootstrap';
 import { FiTrash2, FiShoppingCart, FiArrowLeft, FiPlus, FiMinus, FiInfo } from 'react-icons/fi';
 import Swal from 'sweetalert2';
@@ -24,40 +24,21 @@ const Cart = () => {
     const [isUpdating, setIsUpdating] = useState(false);
     const [selectedItems, setSelectedItems] = useState([]);
 
-    // Initialize axios defaults
     useEffect(() => {
         const token = localStorage.getItem('authToken');
         const userData = localStorage.getItem('userData');
-        
+
         if (!token || !userData) {
             navigate('/login');
             return;
         }
-
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        axios.defaults.headers.common['Content-Type'] = 'application/json';
         
         fetchCart();
     }, [navigate]);
 
     const fetchCart = async () => {
         try {
-            const token = localStorage.getItem('authToken');
-            const userData = JSON.parse(localStorage.getItem('userData'));
-
-            if (!token || !userData) {
-                throw new Error('Authentication required');
-            }
-
-            const config = {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                    'X-User-ID': userData._id
-                }
-            };
-
-            const response = await axios.get('http://localhost:5002/api/cart', config);
+            const response = await cartApi.get('/api/cart');
             setCart(response.data);
             setLoading(false);
         } catch (err) {
@@ -66,7 +47,6 @@ const Cart = () => {
             if (err.response?.status === 401) {
                 localStorage.removeItem('authToken');
                 localStorage.removeItem('userData');
-                delete axios.defaults.headers.common['Authorization'];
                 
                 Swal.fire({
                     title: 'Session Expired',
@@ -88,36 +68,15 @@ const Cart = () => {
         
         setIsUpdating(true);
         try {
-            const token = localStorage.getItem('authToken');
-            const userData = JSON.parse(localStorage.getItem('userData'));
-
-            if (!token || !userData) {
-                throw new Error('Authentication required');
-            }
-
-            const config = {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                    'X-User-ID': userData._id
-                }
-            };
-
-            await axios.put(
-                `http://localhost:5002/api/cart/${productId}`,
-                { 
-                    quantity: parseInt(quantity),
-                    userId: userData._id 
-                },
-                config
-            );
+            await cartApi.put(`/api/cart/${productId}`, { 
+                quantity: parseInt(quantity)
+            });
             fetchCart();
         } catch (err) {
             console.error('Error updating quantity:', err);
             if (err.response?.status === 401) {
                 localStorage.removeItem('authToken');
                 localStorage.removeItem('userData');
-                delete axios.defaults.headers.common['Authorization'];
                 
                 Swal.fire({
                     title: 'Session Expired',
@@ -155,22 +114,7 @@ const Cart = () => {
             });
 
             if (result.isConfirmed) {
-                const token = localStorage.getItem('authToken');
-                const userData = JSON.parse(localStorage.getItem('userData'));
-
-                if (!token || !userData) {
-                    throw new Error('Authentication required');
-                }
-
-                const config = {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                        'X-User-ID': userData._id
-                    }
-                };
-
-                await axios.delete(`http://localhost:5002/api/cart/${productId}`, config);
+                await cartApi.delete(`/api/cart/${productId}`);
                 fetchCart();
                 Swal.fire({
                     title: 'Removed!',
@@ -187,7 +131,6 @@ const Cart = () => {
             if (err.response?.status === 401) {
                 localStorage.removeItem('authToken');
                 localStorage.removeItem('userData');
-                delete axios.defaults.headers.common['Authorization'];
                 
                 Swal.fire({
                     title: 'Session Expired',

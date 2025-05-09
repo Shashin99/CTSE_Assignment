@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { authApi } from "../../utils/api";
 import {
     Form,
     Button,
@@ -66,10 +66,7 @@ const UserLogin = ({ onLogin }) => {
 
         setIsSubmitting(true);
         try {
-            const response = await axios.post(
-                "http://localhost:5001/api/auth/login",
-                formData
-            );
+            const response = await authApi.post("/api/auth/login", formData);
 
             if (response.data && response.data.token) {
                 const { token, user } = response.data;
@@ -77,9 +74,6 @@ const UserLogin = ({ onLogin }) => {
                 // Store in localStorage first
                 localStorage.setItem('authToken', token);
                 localStorage.setItem('userData', JSON.stringify(user));
-                
-                // Set axios default header
-                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
                 
                 // Call the parent's onLogin
                 onLogin(token, user);
@@ -94,7 +88,7 @@ const UserLogin = ({ onLogin }) => {
                     showConfirmButton: false,
                 });
 
-                // Navigate to user profile
+                // Navigate to home
                 navigate(`/`);
             } else {
                 throw new Error("Invalid response from server");
@@ -132,51 +126,25 @@ const UserLogin = ({ onLogin }) => {
     };
 
     return (
-        <Container
-            className="d-flex justify-content-center align-items-center"
-            style={{ minHeight: "100vh", backgroundColor: colors.light }}
-        >
-            <Card
-                className="shadow-lg"
-                style={{ width: "600px", borderColor: colors.border }}
-            >
-                <Card.Header
-                    className="py-3"
-                    style={{
-                        backgroundColor: colors.primary,
-                        borderBottom: `3px solid ${colors.secondary}`,
-                    }}
-                >
-                    <h4 className="mb-0 text-white text-center">USER LOGIN</h4>
-                </Card.Header>
-
+        <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "100vh" }}>
+            <Card className="shadow-lg" style={{ maxWidth: "400px", width: "100%" }}>
                 <Card.Body className="p-4">
+                    <h2 className="text-center mb-4" style={{ color: colors.primary }}>
+                        Login
+                    </h2>
                     <Form onSubmit={handleSubmit}>
-                        <Form.Group className="mb-4">
-                            <Form.Label className="fw-bold">
-                                Email Address
-                            </Form.Label>
+                        <Form.Group className="mb-3">
                             <InputGroup>
-                                <InputGroup.Text
-                                    style={{
-                                        backgroundColor: colors.secondary,
-                                        color: colors.primary,
-                                    }}
-                                >
+                                <InputGroup.Text>
                                     <FiMail />
                                 </InputGroup.Text>
                                 <Form.Control
                                     type="email"
                                     name="email"
+                                    placeholder="Email"
                                     value={formData.email}
                                     onChange={handleChange}
                                     isInvalid={!!errors.email}
-                                    placeholder="Enter registered email"
-                                    style={{
-                                        borderColor: errors.email
-                                            ? colors.danger
-                                            : colors.border,
-                                    }}
                                 />
                                 <Form.Control.Feedback type="invalid">
                                     {errors.email}
@@ -185,82 +153,49 @@ const UserLogin = ({ onLogin }) => {
                         </Form.Group>
 
                         <Form.Group className="mb-4">
-                            <Form.Label className="fw-bold">
-                                Password
-                            </Form.Label>
                             <InputGroup>
-                                <InputGroup.Text
-                                    style={{
-                                        backgroundColor: colors.secondary,
-                                        color: colors.primary,
-                                    }}
-                                >
+                                <InputGroup.Text>
                                     <FiLock />
                                 </InputGroup.Text>
                                 <Form.Control
                                     type="password"
                                     name="password"
+                                    placeholder="Password"
                                     value={formData.password}
                                     onChange={handleChange}
                                     isInvalid={!!errors.password}
-                                    placeholder="Enter password"
-                                    style={{
-                                        borderColor: errors.password
-                                            ? colors.danger
-                                            : colors.border,
-                                    }}
                                 />
                                 <Form.Control.Feedback type="invalid">
                                     {errors.password}
                                 </Form.Control.Feedback>
                             </InputGroup>
-                            <div className="text-end mt-2">
-                                <Button
-                                    variant="link"
-                                    onClick={() => navigate("/forgot-password")}
-                                    style={{ color: colors.primary, padding: 0 }}
-                                >
-                                    Forgot Password?
-                                </Button>
-                            </div>
                         </Form.Group>
 
-                        <div className="d-flex justify-content-between align-items-center mt-4">
-                            <Button
-                                variant="link"
-                                onClick={() => navigate("/register")}
+                        <Button
+                            variant="primary"
+                            type="submit"
+                            className="w-100 mb-3"
+                            disabled={isSubmitting}
+                            style={{ backgroundColor: colors.primary }}
+                        >
+                            {isSubmitting ? (
+                                <Spinner animation="border" size="sm" />
+                            ) : (
+                                <>
+                                    <FiLogIn className="me-2" />
+                                    Login
+                                </>
+                            )}
+                        </Button>
+
+                        <div className="text-center">
+                            <a
+                                href="/forgot-password"
+                                className="text-decoration-none"
                                 style={{ color: colors.primary }}
                             >
-                                Don't have an account? Register here
-                            </Button>
-
-                            <Button
-                                variant="primary"
-                                type="submit"
-                                style={{
-                                    backgroundColor: colors.primary,
-                                    borderColor: colors.primary,
-                                    width: "150px",
-                                }}
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting ? (
-                                    <>
-                                        <Spinner
-                                            as="span"
-                                            animation="border"
-                                            size="sm"
-                                            className="me-2"
-                                        />
-                                        Logging in...
-                                    </>
-                                ) : (
-                                    <>
-                                        <FiLogIn className="me-2" />
-                                        Login
-                                    </>
-                                )}
-                            </Button>
+                                Forgot Password?
+                            </a>
                         </div>
                     </Form>
                 </Card.Body>

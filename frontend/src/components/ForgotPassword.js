@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { authApi } from '../utils/api';
 import {
     Form,
     Button,
@@ -60,7 +60,7 @@ const ForgotPassword = () => {
 
         setIsSubmitting(true);
         try {
-            const response = await axios.post('http://localhost:5001/api/auth/forgot-password', { email });
+            const response = await authApi.post('/api/auth/forgot-password', { email });
             setMessage(response.data.message);
             
             await Swal.fire({
