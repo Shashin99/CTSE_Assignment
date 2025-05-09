@@ -31,22 +31,26 @@ const EditProfile = () => {
             try {
                 const userData = JSON.parse(localStorage.getItem("userData"));
                 
-                if (!userData || !userData._id) {
+                if (!userData || !userData.id) {
                     throw new Error("No user data found");
                 }
 
-                const response = await userApi.get(`/api/users/${userData._id}`);
+                const response = await userApi.get(`/api/users/${userData.id}`);
+                const user = response.data.user;
+                
                 setFormData({
-                    name: response.data.name || "",
-                    email: response.data.email || "",
-                    contactNumber: response.data.contactNumber || "",
-                    nic: response.data.nic || "",
-                    address: response.data.address || ""
+                    name: user.name || "",
+                    email: user.email || "",
+                    contactNumber: user.contactNumber || "",
+                    nic: user.nic || "",
+                    address: user.address || ""
                 });
                 setLoading(false);
             } catch (error) {
+                console.error("Error fetching user:", error);
                 if (error.response?.status === 401) {
                     localStorage.removeItem("authToken");
+                    localStorage.removeItem("userData");
                     Swal.fire({
                         title: "Session Expired",
                         text: "Please login again",
@@ -62,7 +66,7 @@ const EditProfile = () => {
                         icon: "error",
                         confirmButtonColor: colors.primary,
                     });
-                    navigate("/login");
+                    navigate("/userprofile");
                 }
             }
         };
@@ -125,14 +129,14 @@ const EditProfile = () => {
         try {
             const userData = JSON.parse(localStorage.getItem("userData"));
             
-            if (!userData || !userData._id) {
+            if (!userData || !userData.id) {
                 throw new Error("No user data found");
             }
 
-            await userApi.put(`/api/users/${userData._id}`, formData);
-
+            const response = await userApi.put(`/api/users/${userData.id}`, formData);
+            
             // Update the user data in localStorage
-            const updatedUserData = { ...userData, ...formData };
+            const updatedUserData = { ...userData, ...response.data.user };
             localStorage.setItem("userData", JSON.stringify(updatedUserData));
 
             Swal.fire({
@@ -146,8 +150,10 @@ const EditProfile = () => {
 
             navigate("/userprofile");
         } catch (error) {
+            console.error("Error updating profile:", error);
             if (error.response?.status === 401) {
                 localStorage.removeItem("authToken");
+                localStorage.removeItem("userData");
                 Swal.fire({
                     title: "Session Expired",
                     text: "Please login again",
@@ -197,6 +203,7 @@ const EditProfile = () => {
                                         value={formData.name}
                                         onChange={handleChange}
                                         isInvalid={!!errors.name}
+                                        placeholder="Enter your name"
                                     />
                                     <Form.Control.Feedback type="invalid">
                                         {errors.name}
@@ -215,6 +222,7 @@ const EditProfile = () => {
                                         value={formData.email}
                                         onChange={handleChange}
                                         isInvalid={!!errors.email}
+                                        placeholder="Enter your email"
                                     />
                                     <Form.Control.Feedback type="invalid">
                                         {errors.email}
@@ -236,6 +244,7 @@ const EditProfile = () => {
                                         value={formData.contactNumber}
                                         onChange={handleChange}
                                         isInvalid={!!errors.contactNumber}
+                                        placeholder="Enter your contact number"
                                     />
                                     <Form.Control.Feedback type="invalid">
                                         {errors.contactNumber}
@@ -254,6 +263,7 @@ const EditProfile = () => {
                                         value={formData.nic}
                                         onChange={handleChange}
                                         isInvalid={!!errors.nic}
+                                        placeholder="Enter your NIC"
                                     />
                                     <Form.Control.Feedback type="invalid">
                                         {errors.nic}
@@ -273,6 +283,7 @@ const EditProfile = () => {
                                 name="address"
                                 value={formData.address}
                                 onChange={handleChange}
+                                placeholder="Enter your address"
                             />
                         </Form.Group>
 

@@ -172,7 +172,7 @@ const UserProfile = () => {
                     <div className="d-flex justify-content-center gap-3 mt-4">
                         <Button
                             variant="primary"
-                            onClick={() => navigate("/edit-profile")}
+                            onClick={() => navigate("/editprofile")}
                             className="d-flex align-items-center"
                             style={{
                                 backgroundColor: colors.primary,
