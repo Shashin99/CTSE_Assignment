@@ -36,8 +36,8 @@ jobs:
                   IMAGE_TAG: latest
                   REPOSITORY: ctse-app
               run: |
-                  docker build -t $ECR_REGISTRY/$REPOSITORY-user:$IMAGE_TAG ./backend/userservice
-                  docker push $ECR_REGISTRY/$REPOSITORY-user:$IMAGE_TAG
+                  docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./backend/userservice
+                  docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
 
             - name: Build and Push Cart Service
               id: cart
@@ -46,8 +46,8 @@ jobs:
                   IMAGE_TAG: latest
                   REPOSITORY: ctse-app
               run: |
-                  docker build -t $ECR_REGISTRY/$REPOSITORY-cart:$IMAGE_TAG ./backend/cartservice
-                  docker push $ECR_REGISTRY/$REPOSITORY-cart:$IMAGE_TAG
+                  docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./backend/cartservice
+                  docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
 
             - name: Build and Push Product Service
               id: product
@@ -56,8 +56,8 @@ jobs:
                   IMAGE_TAG: latest
                   REPOSITORY: ctse-app
               run: |
-                  docker build -t $ECR_REGISTRY/$REPOSITORY-product:$IMAGE_TAG ./backend/productservice
-                  docker push $ECR_REGISTRY/$REPOSITORY-product:$IMAGE_TAG
+                  docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./backend/productservice
+                  docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
 
             - name: Build and Push Auth Service
               id: auth
@@ -66,8 +66,8 @@ jobs:
                   IMAGE_TAG: latest
                   REPOSITORY: ctse-app
               run: |
-                  docker build -t $ECR_REGISTRY/$REPOSITORY-auth:$IMAGE_TAG ./backend/authservice
-                  docker push $ECR_REGISTRY/$REPOSITORY-auth:$IMAGE_TAG
+                  docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./backend/authservice
+                  docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
 
             - name: Build and Push API Gateway
               id: gateway
@@ -76,8 +76,8 @@ jobs:
                   IMAGE_TAG: latest
                   REPOSITORY: ctse-app
               run: |
-                  docker build -t $ECR_REGISTRY/$REPOSITORY-gateway:$IMAGE_TAG ./backend/apigateway
-                  docker push $ECR_REGISTRY/$REPOSITORY-gateway:$IMAGE_TAG
+                  docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./backend/apigateway
+                  docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
 
     deploy:
         name: Deploy to Amazon ECS
