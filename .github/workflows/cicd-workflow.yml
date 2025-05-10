@@ -84,10 +84,19 @@ jobs:
           docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
           echo "GATEWAY_IMAGE=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
 
+      # Print Environment Variables
+      - name: Print Environment Variables
+        run: |
+          echo "Gateway Image: ${{ steps.gateway.outputs.image }}"
+          echo "User Image: ${{ steps.user.outputs.image }}"
+          echo "Cart Image: ${{ steps.cart.outputs.image }}"
+          echo "Product Image: ${{ steps.product.outputs.image }}"
+          echo "Auth Image: ${{ steps.auth.outputs.image }}"
+
   deploy:
     name: Deploy to Amazon ECS
     runs-on: ubuntu-latest
-    needs: build
+    needs: build  # Ensure 'deploy' waits for the 'build' job to complete
 
     steps:
       - name: Checkout Source Code
@@ -180,5 +189,3 @@ jobs:
           cluster: ctseCluster
           task-definition: ${{ steps.auth-task-def.outputs.task-definition }}
           wait-for-service-stability: true
-
-
