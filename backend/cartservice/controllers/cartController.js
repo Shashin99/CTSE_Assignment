@@ -55,7 +55,7 @@ export const getCart = async (req, res) => {
     }
 };
 
-// Add item to cart
+
 export const addToCart = async (req, res) => {
     try {
         console.log('Adding to cart for user:', req.userId);
