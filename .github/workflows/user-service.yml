@@ -1,0 +1,66 @@
+name: UserService CICD Pipeline
+
+on:
+    push:
+        branches: ["main"]
+    pull_request:
+        branches: ["main"]
+
+jobs:
+    build:
+        name: Build and Push UserService Docker Image
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Source Code
+              uses: actions/checkout@v3
+
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v3
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: eu-north-1
+
+            - name: Login to Amazon ECR
+              uses: aws-actions/amazon-ecr-login@v1
+
+            - name: Build and Push UserService
+              env:
+                  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+                  IMAGE_TAG: latest
+                  REPOSITORY: ctse-user
+              run: |
+                  docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./backend/userservice
+                  docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+    deploy:
+        name: Deploy UserService to ECS
+        runs-on: ubuntu-latest
+        needs: build
+
+        steps:
+            - name: Checkout Source Code
+              uses: actions/checkout@v3
+
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v3
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: eu-north-1
+
+            - name: Update ECS Task Definition
+              uses: aws-actions/amazon-ecs-render-task-definition@v1
+              with:
+                  task-definition: ./backend/tasks/ctse-user-task-definition.json
+                  container-name: ctse-user
+                  image: ${{ steps.build.outputs.image }}
+
+            - name: Deploy to ECS
+              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+              with:
+                  task-definition: ${{ steps.build.outputs.image }}
+                  service: user-service
+                  cluster: ctseCluster
+                  wait-for-service-stability: true
