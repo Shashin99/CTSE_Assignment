@@ -61,10 +61,22 @@ jobs:
           docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
+      - name: Build and Push CartService
+        id: cart
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: latest
+          REPOSITORY: ctse-cart
+        run: |
+          docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./backend/cartservice
+          docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
     outputs:
       user-image-uri: ${{ steps.user.outputs.image }}
       product-image-uri: ${{ steps.product.outputs.image }}
       auth-image-uri: ${{ steps.auth.outputs.image }}
+      cart-image-uri: ${{ steps.cart.outputs.image }}
 
   deploy:
     name: Deploy to Amazon ECS
@@ -127,5 +139,21 @@ jobs:
         with:
           task-definition: ${{ steps.auth-task-def.outputs.task-definition }}
           service: auth-service
+          cluster: ctseCluster
+          wait-for-service-stability: true
+
+      - name: Update ECS Task Definition for Cart Service
+        id: cart-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ./backend/tasks/ctse-cart-task-definition.json
+          container-name: ctse-cart
+          image: ${{ needs.build.outputs.cart-image-uri }}
+
+      - name: Deploy Updated Cart Service to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.cart-task-def.outputs.task-definition }}
+          service: cart-service
           cluster: ctseCluster
           wait-for-service-stability: true
