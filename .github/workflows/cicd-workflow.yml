@@ -84,14 +84,24 @@ jobs:
           docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
           echo "GATEWAY_IMAGE=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
 
-      # Print Environment Variables
+  print-env-vars:
+    name: Print Environment Variables
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
       - name: Print Environment Variables
         run: |
-          echo "Gateway Image: ${{ steps.gateway.outputs.image }}"
-          echo "User Image: ${{ steps.user.outputs.image }}"
-          echo "Cart Image: ${{ steps.cart.outputs.image }}"
-          echo "Product Image: ${{ steps.product.outputs.image }}"
-          echo "Auth Image: ${{ steps.auth.outputs.image }}"
+          echo "Gateway Image: $GATEWAY_IMAGE"
+          echo "User Image: $USER_IMAGE"
+          echo "Cart Image: $CART_IMAGE"
+          echo "Product Image: $PRODUCT_IMAGE"
+          echo "Auth Image: $AUTH_IMAGE"
+        env:
+          GATEWAY_IMAGE: ${{ needs.build.outputs.gateway_image }}
+          USER_IMAGE: ${{ needs.build.outputs.user_image }}
+          CART_IMAGE: ${{ needs.build.outputs.cart_image }}
+          PRODUCT_IMAGE: ${{ needs.build.outputs.product_image }}
+          AUTH_IMAGE: ${{ needs.build.outputs.auth_image }}
 
   deploy:
     name: Deploy to Amazon ECS
