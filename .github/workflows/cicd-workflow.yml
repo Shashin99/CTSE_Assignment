@@ -50,9 +50,21 @@ jobs:
           docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
+      - name: Build and Push AuthService
+        id: auth
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: latest
+          REPOSITORY: ctse-auth
+        run: |
+          docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./backend/authservice
+          docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
     outputs:
       user-image-uri: ${{ steps.user.outputs.image }}
       product-image-uri: ${{ steps.product.outputs.image }}
+      auth-image-uri: ${{ steps.auth.outputs.image }}
 
   deploy:
     name: Deploy to Amazon ECS
@@ -99,5 +111,21 @@ jobs:
         with:
           task-definition: ${{ steps.product-task-def.outputs.task-definition }}
           service: product-service
+          cluster: ctseCluster
+          wait-for-service-stability: true
+
+      - name: Update ECS Task Definition for Auth Service
+        id: auth-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ./backend/tasks/ctse-auth-task-definition.json
+          container-name: ctse-auth
+          image: ${{ needs.build.outputs.auth-image-uri }}
+
+      - name: Deploy Updated Auth Service to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.auth-task-def.outputs.task-definition }}
+          service: auth-service
           cluster: ctseCluster
           wait-for-service-stability: true
