@@ -1,15 +1,22 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:eu-north-1:412381758494:task-definition/ctse-auth-service-app-task:2",
+    "taskDefinitionArn": "arn:aws:ecs:eu-north-1:412381758494:task-definition/ctse-app-task-definition:25",
     "containerDefinitions": [
         {
-            "name": "ctse-auth",
-            "image": "412381758494.dkr.ecr.eu-north-1.amazonaws.com/ctse-auth",
+            "name": "ctse-app",
+            "image": "412381758494.dkr.ecr.eu-north-1.amazonaws.com/ctse-app",
             "cpu": 0,
             "portMappings": [
                 {
-                    "name": "ctse-app-5001-tcp",
-                    "containerPort": 5001,
-                    "hostPort": 5001,
+                    "name": "ctse-app-80-tcp",
+                    "containerPort": 80,
+                    "hostPort": 80,
+                    "protocol": "tcp",
+                    "appProtocol": "http"
+                },
+                {
+                    "name": "ctse-app-5000-tcp",
+                    "containerPort": 5000,
+                    "hostPort": 5000,
                     "protocol": "tcp",
                     "appProtocol": "http"
                 }
@@ -23,7 +30,7 @@
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
-                    "awslogs-group": "/ecs/ctse-auth-service-app-task",
+                    "awslogs-group": "/ecs/ctse-app-task-definition",
                     "mode": "non-blocking",
                     "awslogs-create-group": "true",
                     "max-buffer-size": "25m",
@@ -35,11 +42,11 @@
             "systemControls": []
         }
     ],
-    "family": "ctse-auth-service-app-task",
+    "family": "ctse-app-task-definition",
     "taskRoleArn": "arn:aws:iam::412381758494:role/ECSTaskExecution-Role",
     "executionRoleArn": "arn:aws:iam::412381758494:role/ECSTaskExecution-Role",
     "networkMode": "awsvpc",
-    "revision": 2,
+    "revision": 25,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -88,7 +95,8 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2025-05-09T22:21:16.944Z",
+    "registeredAt": "2025-05-10T02:26:40.597Z",
     "registeredBy": "arn:aws:iam::412381758494:user/Shashin",
+    "enableFaultInjection": false,
     "tags": []
 }
