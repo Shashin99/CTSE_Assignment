@@ -41,6 +41,19 @@ jobs:
     outputs:
       image-uri: ${{ steps.user.outputs.image }}
 
+      -  name: Build and Push ProductService
+        id: product
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: latest
+          REPOSITORY: ctse-product
+        run: |
+          docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG ./backend/productservice
+          docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+    outputs:
+      image-uri: ${{ steps.product.outputs.image }}
+
   deploy:
     name: Deploy to Amazon ECS
     runs-on: ubuntu-latest
@@ -57,18 +70,34 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-north-1
 
-      - name: Update ECS Task Definition with New Image
-        id: task-def
+      - name: Update ECS Task Definition for User Service
+        id: user-task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: ./backend/tasks/ctse-user-task-definition.json
           container-name: ctse-user
           image: ${{ needs.build.outputs.image-uri }}
 
-      - name: Deploy Updated Task Definition to ECS
+      - name: Deploy Updated User Service to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          task-definition: ${{ steps.user-task-def.outputs.task-definition }}
           service: user-service
+          cluster: ctseCluster
+          wait-for-service-stability: true
+
+      - name: Update ECS Task Definition for Product Service
+        id: product-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ./backend/tasks/ctse-product-task-definition.json
+          container-name: ctse-product
+          image: ${{ needs.build.outputs.image-uri }}
+
+      - name: Deploy Updated Product Service to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.product-task-def.outputs.task-definition }}
+          service: product-service
           cluster: ctseCluster
           wait-for-service-stability: true
